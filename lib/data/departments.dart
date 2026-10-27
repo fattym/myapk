@@ -1,0 +1,81 @@
+import '../models/department.dart';
+
+final List<Department> sampleDepartments = [
+  Department(
+    id: 'textbooks',
+    name: 'Textbooks',
+    subtitle: 'CBC & Curriculum textbooks',
+    itemCount: 12,
+    iconName: 'school',
+  ),
+  Department(
+    id: 'stationery',
+    name: 'Stationery',
+    subtitle: 'Pens, notebooks, rulers & more',
+    itemCount: 8,
+    iconName: 'draw',
+  ),
+  Department(
+    id: 'uniforms',
+    name: 'Uniforms',
+    subtitle: 'School uniforms & accessories',
+    itemCount: 5,
+    iconName: 'checkroom',
+  ),
+  Department(
+    id: 'stem',
+    name: 'STEM',
+    subtitle: 'Science & Technical Education',
+    itemCount: 6,
+    iconName: 'science',
+  ),
+  Department(
+    id: 'art_craft',
+    name: 'Art & Craft',
+    subtitle: 'Creative materials & supplies',
+    itemCount: 4,
+    iconName: 'palette',
+  ),
+  Department(
+    id: 'mathematics',
+    name: 'Mathematics',
+    subtitle: 'Grade-level math resources',
+    itemCount: 5,
+    iconName: 'menu-math',
+  ),
+  Department(
+    id: 'english',
+    name: 'English',
+    subtitle: 'Literature & language',
+    itemCount: 7,
+    iconName: 'menu-book',
+  ),
+  Department(
+    id: 'kiswahili',
+    name: 'Kiswahili',
+    subtitle: 'Kiswahili reading & grammar',
+    itemCount: 3,
+    iconName: 'language',
+  ),
+  Department(
+    id: 'science',
+    name: 'Science',
+    subtitle: 'Integrated science subjects',
+    itemCount: 8,
+    iconName: 'science',
+  ),
+  Department(
+    id: 'social_studies',
+    name: 'Social Studies',
+    subtitle: 'History, geography, civics',
+    itemCount: 4,
+    iconName: 'public',
+  ),
+  Department(
+    id: 'physical_education',
+    name: 'Physical Education',
+    subtitle: 'Sports & fitness equipment',
+    itemCount: 3,
+    iconName: 'sports-soccer',
+  ),
+];
