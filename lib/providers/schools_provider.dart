@@ -21,6 +21,26 @@ final class SchoolsProvider extends ChangeNotifier {
 
   final Map<int, SchoolBooklist> _booklists = {};
 
+  // ---- current "Find my booklist" selection (shared by Home and Schools) ----
+  PartnerSchool? _selectedSchool;
+  PartnerSchool? get selectedSchool => _selectedSchool;
+
+  int? _selectedGradeId; // null = all grades
+  int? get selectedGradeId => _selectedGradeId;
+
+  void selectSchool(PartnerSchool? school) {
+    _selectedSchool = school;
+    _selectedGradeId = null;
+    notifyListeners();
+    final id = school?.apiId;
+    if (id != null) loadBooklist(apiId: id);
+  }
+
+  void selectGrade(int? gradeId) {
+    _selectedGradeId = gradeId;
+    notifyListeners();
+  }
+
   PartnerSchool _toPartnerSchool(ApiSchool school) => PartnerSchool(
         name: school.name,
         code: school.slug,
@@ -97,6 +117,8 @@ final class SchoolsProvider extends ChangeNotifier {
     _status = SchoolsStatus.idle;
     _schools = [];
     _booklists.clear();
+    _selectedSchool = null;
+    _selectedGradeId = null;
     _loadingBooklists.clear();
     _failedBooklists.clear();
     _errorMessage = null;

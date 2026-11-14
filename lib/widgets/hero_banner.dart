@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
+import '../providers/schools_provider.dart';
 import '../theme/colors.dart';
+import 'school_picker.dart';
 
+/// "Find your school's booklist" card: pick a school and grade, then jump to
+/// the Schools tab. (Replaces the old static promo banner.)
 class HeroBanner extends StatelessWidget {
   final VoidCallback? onScanTap;
   final VoidCallback? onSearchSchoolTap;
@@ -14,132 +18,150 @@ class HeroBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final schools = context.watch<SchoolsProvider>();
+    final school = schools.selectedSchool;
+    final apiId = school?.apiId;
+    final booklist = apiId == null ? null : schools.booklistFor(apiId);
+    String gradeLabel = 'Select grade';
+    if (booklist != null && schools.selectedGradeId != null) {
+      for (final g in booklist.grades) {
+        if (g.id == schools.selectedGradeId) gradeLabel = g.name;
+      }
+    } else if (booklist != null) {
+      gradeLabel = 'All grades';
+    }
+    final gradeEnabled = booklist != null && booklist.grades.isNotEmpty;
+
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.darkPurple, AppColors.primaryPurple, AppColors.lightPurple],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryPurple.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.darkPurple,
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.accentGold,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.verified,
-                      color: AppColors.darkPurple,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'CBC Approved 2026',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.darkPurple,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppColors.accentGold,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Text(
+              'CBC approved 2026',
+              style: TextStyle(
+                color: AppColors.darkPurple,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.lightGold,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.emoji_events,
-                      color: AppColors.darkPurple,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Chama Group 10% Off',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.darkPurple,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Get up to 10% off\nwhen you order with\nyour Chama Group!',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: AppColors.surfaceWhite,
+          const SizedBox(height: 14),
+          const Text(
+            "Find your school's booklist in seconds",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 26,
               fontWeight: FontWeight.w700,
-              height: 1.2,
+              height: 1.15,
+              letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: onScanTap,
-                  icon: const FaIcon(FontAwesomeIcons.camera, size: 16),
-                  label: const Text('Scan Booklist Photo'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accentGold,
-                    foregroundColor: AppColors.darkPurple,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+          _PickerButton(
+            label: school?.name ?? 'Select your school',
+            filled: school != null,
+            solid: true,
+            onTap: () => showSchoolPicker(context),
+          ),
+          const SizedBox(height: 8),
+          _PickerButton(
+            label: school == null ? 'Select grade' : gradeLabel,
+            filled: schools.selectedGradeId != null,
+            solid: false,
+            enabled: gradeEnabled,
+            onTap: () => showGradePicker(context),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 48,
+            child: ElevatedButton(
+              onPressed: school == null
+                  ? () => showSchoolPicker(context)
+                  : onSearchSchoolTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accentGold,
+                foregroundColor: const Color(0xFF2A1240),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                textStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: onSearchSchoolTap,
-                  icon: const Icon(Icons.search, size: 16),
-                  label: const Text('Search School Directory'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.surfaceWhite.withValues(alpha: 0.2),
-                    foregroundColor: AppColors.surfaceWhite,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              child: const Text('Find my list'),
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PickerButton extends StatelessWidget {
+  final String label;
+  final bool filled;
+  final bool solid;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _PickerButton({
+    required this.label,
+    required this.filled,
+    required this.solid,
+    required this.onTap,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = solid
+        ? (filled ? AppColors.textPrimary : AppColors.textSecondary)
+        : Colors.white.withValues(alpha: enabled ? 1 : 0.7);
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: label,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: enabled ? onTap : null,
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: solid ? Colors.white : Colors.white.withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: fg,
+                    fontSize: 15,
+                    fontWeight: filled ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ),
+              Icon(Icons.keyboard_arrow_down,
+                  color: solid ? AppColors.textSecondary : Colors.white),
+            ],
+          ),
+        ),
       ),
     );
   }

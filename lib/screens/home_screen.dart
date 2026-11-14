@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../data/products.dart';
-import '../data/departments.dart';
-import '../data/publishers.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/app_provider.dart';
+import '../providers/catalog_provider.dart';
 import '../theme/colors.dart';
+import '../widgets/app_header.dart';
 import '../widgets/hero_banner.dart';
 import '../widgets/product_card.dart';
-import '../widgets/department_card.dart';
-import '../widgets/publisher_card.dart';
 import '../widgets/sell_trade_in_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final VoidCallback? onScanTap;
   final VoidCallback? onSearchSchoolTap;
   final Function(int)? onNavigateToTab;
@@ -25,32 +23,51 @@ class HomeScreen extends StatelessWidget {
     this.onTradeInTap,
   });
 
-  Widget _buildSectionHeader(BuildContext context, String title,
-      {VoidCallback? onSeeAll}) {
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final c = context.read<CatalogProvider>();
+      c.loadCategories();
+      c.loadFeatured();
+    });
+  }
+
+  Future<void> _openWhatsApp() async {
+    final uri = Uri.parse(
+      'https://wa.me/254797100500?text=${Uri.encodeComponent("Hi MyBidhaa, I would like to shop via WhatsApp.")}',
+    );
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Widget _sectionHeader(String title, {VoidCallback? onSeeAll}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.2,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           if (onSeeAll != null)
             TextButton(
               onPressed: onSeeAll,
-              child: Text(
-                'See All',
+              child: const Text(
+                'See all',
                 style: TextStyle(
                   color: AppColors.primaryPurple,
-                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -60,116 +77,171 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _quickAction(IconData icon, String label, Color color,
+      VoidCallback? onTap) {
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.dividerColor),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final catalog = context.watch<CatalogProvider>();
+    final departments = catalog.departments;
+    final featured = catalog.featured;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundNeutral,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
-            // Hero Banner
-            HeroBanner(
-              onScanTap: onScanTap,
-              onSearchSchoolTap: onSearchSchoolTap,
-            ),
-            const SizedBox(height: 8),
-            // KICD Approved Publishers
-            _buildSectionHeader(context, 'KICD Approved Publishers'),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                height: 130,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: samplePublishers.length,
-                  itemBuilder: (context, index) {
-                    return PublisherCard(
-                      publisher: samplePublishers[index],
-                      onTap: () {
-                        context
-                            .read<AppProvider>()
-                            .setSelectedPublisher(samplePublishers[index].name);
-                        onNavigateToTab?.call(2);
-                      },
-                    );
-                  },
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryPurple,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.menu_book,
+                          color: AppColors.accentGold, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'MyBidhaa',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryPurple,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                    const CartButton(),
+                  ],
                 ),
               ),
             ),
-            // Department Quick Access
-            _buildSectionHeader(
-              context,
-              'Shop by Department',
-              onSeeAll: () => onNavigateToTab?.call(1),
-            ),
-            const SizedBox(height: 8),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: AppSearchField(
+                hint: 'Search books, stationery, uniforms',
+                onSubmitted: (q) {
+                  context.read<AppProvider>()
+                    ..clearFilters()
+                    ..setSearchQuery(q);
+                  widget.onNavigateToTab?.call(2);
+                },
+              ),
+            ),
+            HeroBanner(
+              onScanTap: widget.onScanTap,
+              onSearchSchoolTap: widget.onSearchSchoolTap,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Row(
+                children: [
+                  _quickAction(Icons.document_scanner_outlined, 'Scan list',
+                      AppColors.primaryPurple, widget.onScanTap),
+                  const SizedBox(width: 10),
+                  _quickAction(Icons.school_outlined, 'Schools',
+                      AppColors.primaryPurple, widget.onSearchSchoolTap),
+                  const SizedBox(width: 10),
+                  _quickAction(Icons.chat_outlined, 'WhatsApp',
+                      const Color(0xFF147A3F), _openWhatsApp),
+                ],
+              ),
+            ),
+            _sectionHeader('Shop by category',
+                onSeeAll: () => widget.onNavigateToTab?.call(1)),
+            SizedBox(
+              height: 44,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: departments.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, i) {
+                  final d = departments[i];
+                  return ActionChip(
+                    label: Text(d.name),
+                    labelStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary,
+                    ),
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: AppColors.dividerColor),
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    onPressed: () {
+                      context.read<AppProvider>().setSelectedCategory(
+                            d.name,
+                            id: catalog.categoryIdFor(d),
+                          );
+                      widget.onNavigateToTab?.call(2);
+                    },
+                  );
+                },
+              ),
+            ),
+            _sectionHeader('Recommended for you',
+                onSeeAll: () => widget.onNavigateToTab?.call(2)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 160,
-                  childAspectRatio: 1.1,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
+                  mainAxisExtent: ProductCard.gridExtent(featured),
                 ),
-                itemCount: sampleDepartments.length,
-                itemBuilder: (context, index) {
-                  return DepartmentCard(
-                    department: sampleDepartments[index],
-                    onTap: () {
-                      context
-                          .read<AppProvider>()
-                          .setSelectedCategory(sampleDepartments[index].name);
-                      onNavigateToTab?.call(2);
-                    },
-                  );
-                },
+                itemCount: featured.length,
+                itemBuilder: (context, i) => ProductCard(product: featured[i]),
               ),
             ),
-            // Recommended for You
-            _buildSectionHeader(
-              context,
-              'Recommended for You',
-              onSeeAll: () => onNavigateToTab?.call(2),
-            ),
-            const SizedBox(height: 8),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  const double minTileWidth = 200;
-                  const double crossAxisSpacing = 12;
-                  final int crossAxisCount = ((constraints.maxWidth + crossAxisSpacing) ~/
-                          (minTileWidth + crossAxisSpacing))
-                      .clamp(1, 4);
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: crossAxisSpacing,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.7,
-                    ),
-                    itemCount: sampleProducts.length,
-                    itemBuilder: (context, index) {
-                      return ProductCard(product: sampleProducts[index]);
-                    },
-                  );
-                },
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: SellTradeInCard(onTap: widget.onTradeInTap),
             ),
-            // Trade-In Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: SellTradeInCard(onTap: onTradeInTap),
-            ),
-            const SizedBox(height: 80),
+            const SizedBox(height: 16),
           ],
         ),
       ),

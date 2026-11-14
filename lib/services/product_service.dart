@@ -10,6 +10,8 @@ final class ApiProductService extends BaseService {
   Future<PaginatedList<ApiProduct>> fetchApiProducts({
     String? keyword,
     int? categoryId,
+    List<int>? categoryIds,
+    int? brandId,
     int page = 1,
     int perPage = 12,
   }) async {
@@ -17,8 +19,11 @@ final class ApiProductService extends BaseService {
       'page': page,
       'per_page': perPage.clamp(1, 50),
     };
-    if (keyword != null && keyword.isNotEmpty) query['keyword'] = keyword;
-    if (categoryId != null) query['category_id'] = categoryId;
+    if (keyword != null && keyword.isNotEmpty) query['q'] = keyword;
+    // Botble filter params: categories[]=ID / brands[]=ID
+    final cats = categoryIds ?? (categoryId != null ? [categoryId] : null);
+    if (cats != null && cats.isNotEmpty) query['categories[]'] = cats;
+    if (brandId != null) query['brands[]'] = brandId;
     try {
       final resp = await dio.get(
         '/v1/ecommerce/products',
@@ -48,7 +53,7 @@ final class ApiProductService extends BaseService {
   Future<List<ApiProduct>> fetchRelatedApiProducts(String slug) async {
     try {
       final resp = await dio.get('/v1/ecommerce/products/$slug/related');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => ApiProduct.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
@@ -60,7 +65,7 @@ final class ApiProductService extends BaseService {
   Future<List<ApiProduct>> fetchCrossSaleApiProducts(String slug) async {
     try {
       final resp = await dio.get('/v1/ecommerce/products/$slug/cross-sale');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => ApiProduct.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
@@ -72,7 +77,7 @@ final class ApiProductService extends BaseService {
   Future<List<Review>> fetchApiProductReviews(String slug) async {
     try {
       final resp = await dio.get('/v1/ecommerce/products/$slug/reviews');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => Review.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
@@ -105,7 +110,7 @@ final class ApiProductService extends BaseService {
   Future<List<FlashSale>> fetchFlashSales() async {
     try {
       final resp = await dio.get('/v1/ecommerce/flash-sales');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => FlashSale.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();

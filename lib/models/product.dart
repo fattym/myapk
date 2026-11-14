@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'api_models.dart';
 
 @immutable
 class Product {
@@ -11,6 +12,9 @@ class Product {
   final String conditionState;
   final String grade;
   final String iconName;
+  final String? imageUrl;
+  final String? slug;
+  final double? oldPrice;
 
   const Product({
     required this.id,
@@ -22,7 +26,28 @@ class Product {
     this.conditionState = 'new',
     required this.grade,
     required this.iconName,
+    this.imageUrl,
+    this.slug,
+    this.oldPrice,
   });
+
+  /// Builds a UI product from a live API product.
+  factory Product.fromApi(ApiProduct p) => Product(
+        id: p.id,
+        title: p.name,
+        category: (p.categories != null && p.categories!.isNotEmpty)
+            ? p.categories!.first.name
+            : '',
+        publisher: p.brand?.name ?? '',
+        newPrice: p.effectivePrice,
+        grade: '',
+        iconName: 'book',
+        imageUrl: p.imageUrl,
+        slug: p.slug,
+        oldPrice: (p.originalPrice != null && p.originalPrice! > p.effectivePrice)
+            ? p.originalPrice
+            : null,
+      );
 
   Product copyWith({
     int? id,
@@ -34,6 +59,8 @@ class Product {
     String? conditionState,
     String? grade,
     String? iconName,
+    String? imageUrl,
+    String? slug,
   }) {
     return Product(
       id: id ?? this.id,
@@ -45,6 +72,8 @@ class Product {
       conditionState: conditionState ?? this.conditionState,
       grade: grade ?? this.grade,
       iconName: iconName ?? this.iconName,
+      imageUrl: imageUrl ?? this.imageUrl,
+      slug: slug ?? this.slug,
     );
   }
 
@@ -59,6 +88,8 @@ class Product {
       'conditionState': conditionState,
       'grade': grade,
       'iconName': iconName,
+      'imageUrl': imageUrl,
+      'slug': slug,
     };
   }
 
@@ -75,6 +106,8 @@ class Product {
       conditionState: json['conditionState'] as String? ?? 'new',
       grade: json['grade'] as String,
       iconName: json['iconName'] as String,
+      imageUrl: json['imageUrl'] as String?,
+      slug: json['slug'] as String?,
     );
   }
 

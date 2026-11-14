@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/app_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
+import 'providers/catalog_provider.dart';
 import 'providers/profile_provider.dart';
 import 'providers/schools_provider.dart';
 import 'screens/main_shell_screen.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AppProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
         ChangeNotifierProvider(create: (_) => SchoolsProvider()),
+        ChangeNotifierProvider(create: (_) => CatalogProvider()),
       ],
       child: MaterialApp(
         title: 'MyBidhaa',

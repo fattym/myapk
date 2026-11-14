@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../data/products.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/api_models.dart';
 import '../models/partner_school.dart';
 import '../models/product.dart';
+import '../providers/cart_provider.dart';
 import '../providers/schools_provider.dart';
 import '../theme/colors.dart';
 import '../utils/formatters.dart';
-import '../widgets/school_card.dart';
+import '../widgets/app_header.dart';
+import '../widgets/school_picker.dart';
 
+/// "Find my booklist": pick a school, filter by grade, add the list to cart or
+/// order it over WhatsApp. Data comes from /v1/schools and /booklist.
 class SchoolsScreen extends StatefulWidget {
   const SchoolsScreen({super.key});
 
@@ -20,267 +24,559 @@ class _SchoolsScreenState extends State<SchoolsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => context.read<SchoolsProvider>().loadSchools(),
+    );
   }
 
-  void _load() {
-    Provider.of<SchoolsProvider>(context, listen: false).loadSchools();
-  }
+  Product _toProduct(BooklistProduct p, String grade) => Product(
+        id: p.id,
+        title: p.name,
+        category: '',
+        publisher: '',
+        newPrice: p.effectivePrice,
+        grade: grade,
+        iconName: 'book',
+        imageUrl: p.image,
+      );
 
-  List<Product> _sampleBooklistForSchool(String schoolName) {
-    final gradeMap = <String, String>{
-      'Kilimani Junior': 'Grade 2',
-      'Moi Educational': 'Grade 8',
-      "St. Mary's": 'Grade 5',
-      'Brookhouse': 'Grade 7',
-    };
-    final grade = gradeMap[schoolName];
-    if (grade == null) return [];
-    return sampleProducts.where((p) => p.grade == grade).toList();
-  }
+  List<GradeBooklist> _shown(SchoolBooklist b, int? gradeId) =>
+      gradeId == null
+          ? b.grades
+          : b.grades.where((g) => g.id == gradeId).toList();
 
-  void _showBooklist(PartnerSchool school) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black54,
-      builder: (_) => _SchoolBooklistDialog(
-        school: school,
-        sampleProducts: _sampleBooklistForSchool(school.name),
+  double _total(List<GradeBooklist> grades) => grades.fold(
+        0.0,
+        (sum, g) =>
+            sum +
+            g.products.fold(0.0, (s, p) => s + p.effectivePrice * p.quantity),
+      );
+
+  void _addAll(BuildContext context, List<GradeBooklist> grades) {
+    final cart = context.read<CartProvider>();
+    var count = 0;
+    for (final g in grades) {
+      for (final p in g.products) {
+        cart.addItem(_toProduct(p, g.name), quantity: p.quantity);
+        count += p.quantity;
+      }
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$count books added to cart'),
+        backgroundColor: AppColors.primaryPurple,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
+  Future<void> _whatsApp(
+      String school, List<GradeBooklist> grades, double total) async {
+    final b = StringBuffer('MyBidhaa booklist order\n$school\n\n');
+    for (final g in grades) {
+      b.writeln(g.name);
+      for (final p in g.products) {
+        b.writeln(
+            '- ${p.name} x${p.quantity} = ${formatKES(p.effectivePrice * p.quantity)}');
+      }
+      b.writeln();
+    }
+    b.writeln('TOTAL: ${formatKES(total)}');
+    b.writeln('\nI would like to order this booklist. Please confirm.');
+    final uri = Uri.parse(
+        'https://wa.me/254797100500?text=${Uri.encodeComponent(b.toString())}');
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final schools = context.watch<SchoolsProvider>();
+    final school = schools.selectedSchool;
+    final apiId = school?.apiId;
+    final booklist = apiId == null ? null : schools.booklistFor(apiId);
+    final loading =
+        apiId != null && booklist == null && !schools.booklistFailed(apiId);
+    final failed =
+        apiId != null && booklist == null && schools.booklistFailed(apiId);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundNeutral,
-      body: Consumer<SchoolsProvider>(
-        builder: (context, schoolsProvider, _) {
-          final schools = schoolsProvider.schools;
-          final isLoading =
-              schoolsProvider.status == SchoolsStatus.loading && schools.isEmpty;
-          final isError = schoolsProvider.status == SchoolsStatus.error &&
-              schools.isEmpty;
-
-          if (isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (isError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  schoolsProvider.errorMessage ??
-                      'Unable to load schools. Please try again.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
-          }
-          if (schools.isEmpty) {
-            return const Center(child: Text('No schools found.'));
-          }
-          return GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: schools.length,
-            itemBuilder: (context, index) {
-              final school = schools[index];
-              return SchoolCard(
-                school: school,
-                onTap: () => _showBooklist(school),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _SchoolBooklistDialog extends StatefulWidget {
-  const _SchoolBooklistDialog({required this.school, this.sampleProducts});
-
-  final PartnerSchool school;
-  final List<Product>? sampleProducts;
-
-  @override
-  State<_SchoolBooklistDialog> createState() => _SchoolBooklistDialogState();
-}
-
-class _SchoolBooklistDialogState extends State<_SchoolBooklistDialog> {
-  int? _selectedGradeId; // null = all grades
-
-  int? get _apiId => widget.school.apiId;
-
-  @override
-  void initState() {
-    super.initState();
-    final id = _apiId;
-    if (id != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.read<SchoolsProvider>().loadBooklist(apiId: id);
-        }
-      });
-    }
-  }
-
-  void _retry() {
-    final id = _apiId;
-    if (id != null) context.read<SchoolsProvider>().loadBooklist(apiId: id);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final provider = context.watch<SchoolsProvider>();
-    final id = _apiId;
-    final SchoolBooklist? booklist = id == null ? null : provider.booklistFor(id);
-    final bool loading =
-        id != null && booklist == null && !provider.booklistFailed(id);
-    final bool failed =
-        id != null && booklist == null && provider.booklistFailed(id);
-
-    return AlertDialog(
-      backgroundColor: AppColors.surfaceWhite,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Row(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.school, color: AppColors.primaryPurple),
-          const SizedBox(width: 8),
+          const ScreenHeader(
+            title: 'Find my booklist',
+            subtitle: 'Pick your school and grade to see every required book',
+          ),
           Expanded(
-            child: Text(
-              widget.school.name,
-              style: theme.textTheme.titleMedium,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              children: [
+                _SchoolSelector(
+                  name: school?.name,
+                  onTap: () => showSchoolPicker(context),
+                ),
+                const SizedBox(height: 16),
+                if (school == null)
+                  _PopularSchools(
+                    onPick: (s) => context.read<SchoolsProvider>().selectSchool(s),
+                  )
+                else if (apiId == null)
+                  const _Notice(
+                      'This school\'s booklist is not available yet. Please try another school.')
+                else if (loading)
+                  const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (failed)
+                  _Retry(
+                    message:
+                        schools.errorMessage ?? 'Failed to load the booklist.',
+                    onRetry: () => context
+                        .read<SchoolsProvider>()
+                        .loadBooklist(apiId: apiId),
+                  )
+                else if (booklist != null)
+                  ..._content(context, schools, school.name, booklist),
+              ],
             ),
           ),
         ],
       ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: loading
-            ? const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            : failed
-                ? Text(provider.errorMessage ?? 'Failed to load booklist.')
-                : SingleChildScrollView(child: _buildContent(context, booklist)),
+    );
+  }
+
+  List<Widget> _content(BuildContext context, SchoolsProvider schools,
+      String schoolName, SchoolBooklist booklist) {
+    if (booklist.grades.isEmpty) {
+      return const [_Notice('No booklist available for this school yet.')];
+    }
+    final gradeId = booklist.grades.any((g) => g.id == schools.selectedGradeId)
+        ? schools.selectedGradeId
+        : null;
+    final shown = _shown(booklist, gradeId);
+    final total = _total(shown);
+    final bookCount = shown.fold<int>(0, (s, g) => s + g.products.length);
+
+    return [
+      const Text(
+        'GRADE',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
+          letterSpacing: 0.4,
+        ),
       ),
-      actions: [
-        if (failed)
-          TextButton.icon(
-            icon: const Icon(Icons.refresh, size: 16),
-            onPressed: _retry,
-            label: const Text('Retry'),
+      const SizedBox(height: 8),
+      SizedBox(
+        height: 44,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: [
+            _GradeChip(
+              label: 'All',
+              selected: gradeId == null,
+              onTap: () => context.read<SchoolsProvider>().selectGrade(null),
+            ),
+            for (final g in booklist.grades)
+              _GradeChip(
+                label: g.name,
+                selected: gradeId == g.id,
+                onTap: () => context.read<SchoolsProvider>().selectGrade(g.id),
+              ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 16),
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.dividerColor),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      gradeId == null
+                          ? 'Full booklist'
+                          : '${shown.first.name} booklist',
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '$bookCount books',
+                    style: const TextStyle(
+                        fontSize: 13, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            for (final g in shown) ...[
+              if (gradeId == null)
+                Container(
+                  width: double.infinity,
+                  color: AppColors.subtlePurple,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    g.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryPurple,
+                    ),
+                  ),
+                ),
+              if (g.products.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('No books listed for this grade',
+                      style: TextStyle(color: AppColors.textSecondary)),
+                ),
+              for (final p in g.products) _BookRow(product: p),
+            ],
+          ],
+        ),
+      ),
+      const SizedBox(height: 16),
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.darkPurple,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                const Expanded(
+                  child: Text('Booklist total',
+                      style: TextStyle(color: Colors.white70, fontSize: 14)),
+                ),
+                Text(
+                  formatKES(total),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: bookCount == 0 ? null : () => _addAll(context, shown),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accentGold,
+                  foregroundColor: const Color(0xFF2A1240),
+                  textStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+                child: const Text('Add all to cart'),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: bookCount == 0
+                    ? null
+                    : () => _whatsApp(schoolName, shown, total),
+                icon: const Icon(Icons.chat_outlined, size: 20),
+                label: const Text('Order via WhatsApp'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF147A3F),
+                  foregroundColor: Colors.white,
+                  textStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
+  }
+}
+
+class _SchoolSelector extends StatelessWidget {
+  final String? name;
+  final VoidCallback onTap;
+  const _SchoolSelector({required this.name, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'School: ${name ?? "not selected"}',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          height: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.dividerColor),
           ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.subtlePurple,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.school_outlined,
+                    color: AppColors.primaryPurple, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('School',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary)),
+                    Text(
+                      name ?? 'Select your school',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight:
+                            name == null ? FontWeight.w400 : FontWeight.w600,
+                        color: name == null
+                            ? AppColors.textSecondary
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.keyboard_arrow_down,
+                  color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GradeChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _GradeChip(
+      {required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        showCheckmark: false,
+        onSelected: (_) => onTap(),
+        labelStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+          color: selected ? Colors.white : AppColors.textPrimary,
+        ),
+        selectedColor: AppColors.primaryPurple,
+        backgroundColor: Colors.white,
+        side: BorderSide(
+          color: selected ? AppColors.primaryPurple : AppColors.dividerColor,
+        ),
+        shape: const StadiumBorder(),
+      ),
+    );
+  }
+}
+
+class _BookRow extends StatelessWidget {
+  final BooklistProduct product;
+  const _BookRow({required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.dividerColor)),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Container(
+              width: 44,
+              height: 58,
+              color: AppColors.subtlePurple,
+              child: (product.image != null && product.image!.isNotEmpty)
+                  ? Image.network(
+                      product.image!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const Icon(Icons.menu_book,
+                          color: AppColors.primaryPurple),
+                    )
+                  : const Icon(Icons.menu_book,
+                      color: AppColors.primaryPurple),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${product.quantity} required',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            formatKES(product.effectivePrice),
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryPurple,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PopularSchools extends StatelessWidget {
+  final ValueChanged<PartnerSchool> onPick;
+  const _PopularSchools({required this.onPick});
+
+  @override
+  Widget build(BuildContext context) {
+    final schools = context.watch<SchoolsProvider>();
+    if (schools.status == SchoolsStatus.loading && schools.schools.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    final list = schools.schools.take(8).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'PARTNER SCHOOLS',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+            letterSpacing: 0.4,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.dividerColor),
+          ),
+          child: Column(
+            children: [
+              for (var i = 0; i < list.length; i++)
+                ListTile(
+                  shape: i == 0
+                      ? const RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(20)))
+                      : null,
+                  leading: const Icon(Icons.school_outlined,
+                      color: AppColors.primaryPurple),
+                  title: Text(list[i].name,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle:
+                      list[i].location.isEmpty ? null : Text(list[i].location),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => onPick(list[i]),
+                ),
+            ],
+          ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildContent(BuildContext context, SchoolBooklist? booklist) {
-    final theme = Theme.of(context);
-    final header = Text(
-      '${widget.school.location} \u2022 ${widget.school.code}',
-      style: const TextStyle(color: Colors.grey, fontSize: 13),
-    );
+class _Notice extends StatelessWidget {
+  final String text;
+  const _Notice(this.text);
 
-    if (booklist != null) {
-      final all = booklist.grades;
-      if (all.isEmpty) return const Text('No booklist available');
-      // Keep selection valid if the data changed.
-      final selected = all.any((g) => g.id == _selectedGradeId)
-          ? _selectedGradeId
-          : null;
-      final shown =
-          selected == null ? all : all.where((g) => g.id == selected).toList();
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.dividerColor),
+        ),
+        child: Text(text,
+            style: const TextStyle(color: AppColors.textSecondary)),
+      );
+}
+
+class _Retry extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+  const _Retry({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) => Column(
         children: [
-          header,
-          const SizedBox(height: 12),
-          DropdownButtonFormField<int?>(
-            value: selected,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Select grade',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-            items: [
-              const DropdownMenuItem<int?>(
-                value: null,
-                child: Text('All grades'),
-              ),
-              ...all.map((g) => DropdownMenuItem<int?>(
-                    value: g.id,
-                    child: Text(g.name, overflow: TextOverflow.ellipsis),
-                  )),
-            ],
-            onChanged: (v) => setState(() => _selectedGradeId = v),
+          _Notice(message),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
           ),
-          const SizedBox(height: 12),
-          ...shown.map((grade) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    grade.name,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.primaryPurple,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  if (grade.products.isEmpty)
-                    const Text('No books listed for this grade',
-                        style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  ...grade.products.map((product) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        dense: true,
-                        title: Text(product.name,
-                            style: const TextStyle(fontSize: 13)),
-                        subtitle: Text(
-                          '${product.quantity} required \u2022 ${formatKES(product.effectivePrice)}',
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                      )),
-                  const SizedBox(height: 8),
-                ],
-              )),
         ],
       );
-    }
-
-    final books = widget.sampleProducts ?? [];
-    if (books.isEmpty) return const Text('No booklist available');
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        header,
-        const SizedBox(height: 12),
-        ...books.map((product) => ListTile(
-              leading: const Icon(Icons.book,
-                  color: AppColors.primaryPurple, size: 20),
-              title: Text(product.title, style: const TextStyle(fontSize: 13)),
-              subtitle: Text(
-                '${product.publisher} \u2022 ${formatKES(product.newPrice)}',
-                style: const TextStyle(fontSize: 11),
-              ),
-            )),
-      ],
-    );
-  }
 }

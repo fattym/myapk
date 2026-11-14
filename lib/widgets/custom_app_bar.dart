@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
-import '../data/departments.dart';
+import '../providers/catalog_provider.dart';
 import '../models/student_profile.dart';
 import '../providers/app_provider.dart';
 import '../providers/cart_provider.dart';
@@ -42,7 +42,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
         top: MediaQuery.of(context).padding.top + 8,
         left: 16,
         right: 16,
-        bottom: 12,
+        bottom: 10,
       ),
       decoration: BoxDecoration(
         color: AppColors.surfaceWhite,
@@ -224,9 +224,13 @@ class _CustomAppBarState extends State<CustomAppBar> {
            Row(
              children: [
                Expanded(
-                 child: Consumer<AppProvider>(
-                   builder: (context, appProvider, child) {
-                     final selectedValue = appProvider.selectedCategory ?? 'All Departments';
+                 child: Consumer2<AppProvider, CatalogProvider>(
+                   builder: (context, appProvider, catalog, child) {
+                     final depts = catalog.departments;
+                     final selectedValue =
+                         depts.any((d) => d.name == appProvider.selectedCategory)
+                             ? appProvider.selectedCategory!
+                             : 'All Departments';
                      return Container(
                        padding: const EdgeInsets.symmetric(horizontal: 12),
                        decoration: BoxDecoration(
@@ -238,15 +242,16 @@ class _CustomAppBarState extends State<CustomAppBar> {
                        ),
                        child: DropdownButton<String>(
                          value: selectedValue,
+                         isExpanded: true,
                          items: [
                            const DropdownMenuItem(
                              value: 'All Departments',
                              child: Text('All Departments'),
                            ),
-                           ...sampleDepartments.map(
+                           ...depts.map(
                              (d) => DropdownMenuItem(
                                value: d.name,
-                               child: Text(d.name),
+                               child: Text(d.name, overflow: TextOverflow.ellipsis),
                              ),
                            ),
                          ],
@@ -254,7 +259,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
                            if (value == null || value == 'All Departments') {
                              appProvider.setSelectedCategory(null);
                            } else {
-                             appProvider.setSelectedCategory(value);
+                             final d = depts.firstWhere((x) => x.name == value);
+                             appProvider.setSelectedCategory(value,
+                                 id: catalog.categoryIdFor(d));
                            }
                          },
                          style: Theme.of(context).textTheme.bodySmall?.copyWith(

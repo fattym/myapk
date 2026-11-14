@@ -25,14 +25,15 @@ class SchoolCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -47,10 +48,10 @@ class SchoolCard extends StatelessWidget {
                 child: Icon(
                   getIconForName('school'),
                   color: Theme.of(context).colorScheme.primary,
-                  size: 28,
+                  size: 24,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
                 school.name,
                 style: theme.textTheme.titleMedium?.copyWith(
@@ -58,12 +59,12 @@ class SchoolCard extends StatelessWidget {
                   fontSize: 15,
                 ),
                 textAlign: TextAlign.center,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
-                school.location,
+                school.location.isEmpty ? ' ' : school.location,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: Colors.grey[600],
                   fontSize: 11,
@@ -72,7 +73,7 @@ class SchoolCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -86,13 +87,6 @@ class SchoolCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     fontSize: 10,
                   ),
-                ),
-              ),
-              Text(
-                school.subtitle.isEmpty ? school.code : school.subtitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[500],
-                  fontSize: 10,
                 ),
               ),
             ],

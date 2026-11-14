@@ -25,7 +25,7 @@ final class AnalyticsService extends BaseService {
         '/analytics/products/popular',
         queryParameters: {'limit': limit},
       );
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => ApiProduct.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
@@ -40,7 +40,7 @@ final class AnalyticsService extends BaseService {
         '/analytics/search',
         queryParameters: {'days': days},
       );
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
     } on DioException catch (e) {
       throw ApiError.fromDioException(e);
@@ -53,7 +53,7 @@ final class AnalyticsService extends BaseService {
         '/analytics/sessions',
         queryParameters: {'days': days},
       );
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
     } on DioException catch (e) {
       throw ApiError.fromDioException(e);
@@ -86,7 +86,7 @@ final class AnalyticsService extends BaseService {
         '/analytics/events/timeline',
         queryParameters: {'limit': limit},
       );
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
     } on DioException catch (e) {
       throw ApiError.fromDioException(e);
@@ -104,7 +104,7 @@ final class RecommendationService extends BaseService {
         '/analytics/trending',
         queryParameters: {'limit': limit},
       );
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => ApiProduct.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
@@ -116,7 +116,7 @@ final class RecommendationService extends BaseService {
   Future<List<ApiProduct>> fetchSimilarApiProducts(int productId) async {
     try {
       final resp = await dio.get('/analytics/similar/$productId');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => ApiProduct.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
@@ -131,7 +131,7 @@ final class RecommendationService extends BaseService {
         '/analytics/recently-viewed',
         queryParameters: {'limit': limit},
       );
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => ApiProduct.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();

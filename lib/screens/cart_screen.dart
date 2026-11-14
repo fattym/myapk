@@ -15,7 +15,6 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundNeutral,
@@ -23,9 +22,9 @@ class CartScreen extends StatelessWidget {
         backgroundColor: AppColors.surfaceWhite,
         foregroundColor: AppColors.textPrimary,
         elevation: 1,
-        title: Text(
-          'My Cart',
-          style: theme.textTheme.titleLarge,
+        title: const Text(
+          'My cart',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.5),
         ),
         actions: [
           Consumer<CartProvider>(
@@ -121,12 +120,8 @@ class CartScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.accentGold, AppColors.goldHover],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.accentGold,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         children: [
@@ -425,20 +420,28 @@ class CartScreen extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  subtitle: Text(
-                    type.description,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
-                  ),
-                  trailing: Text(
-                    isFree ? 'FREE' : type.priceLabel,
-                    style: TextStyle(
-                      color: isFree ? Colors.green[600] : AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        type.description,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isFree ? 'FREE' : type.priceLabel,
+                        style: TextStyle(
+                          color: isFree
+                              ? Colors.green[600]
+                              : AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }).toList(),
@@ -612,13 +615,13 @@ class CartScreen extends StatelessWidget {
             FontAwesomeIcons.mobileScreenButton,
             size: 18,
           ),
-          label: const Text('Pay via M-Pesa STK Push'),
+          label: const Text('Pay with M-Pesa'),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primaryPurple,
             foregroundColor: AppColors.surfaceWhite,
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
             ),
           ),
         ),
@@ -629,13 +632,13 @@ class CartScreen extends StatelessWidget {
             FontAwesomeIcons.whatsapp,
             size: 18,
           ),
-          label: const Text('Order via WhatsApp'),
+          label: const Text('Checkout with WhatsApp'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF25D36F),
+            backgroundColor: const Color(0xFF147A3F),
             foregroundColor: AppColors.surfaceWhite,
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
             ),
           ),
         ),

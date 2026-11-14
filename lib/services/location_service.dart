@@ -10,7 +10,7 @@ final class LocationService extends BaseService {
   Future<List<Country>> fetchCountries() async {
     try {
       final resp = await dio.get('/v1/ecommerce/countries');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => Country.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
@@ -22,7 +22,7 @@ final class LocationService extends BaseService {
   Future<List<Currency>> fetchCurrencies() async {
     try {
       final resp = await dio.get('/v1/ecommerce/currencies');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => Currency.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();

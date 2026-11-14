@@ -10,7 +10,7 @@ final class AddressService extends BaseService {
   Future<List<Address>> fetchAddresses() async {
     try {
       final resp = await dio.get('/v1/ecommerce/addresses');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => Address.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();

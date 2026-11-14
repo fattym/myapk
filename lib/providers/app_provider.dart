@@ -5,11 +5,15 @@ class AppProvider extends ChangeNotifier {
   String _searchQuery = '';
   String? _selectedCategory;
   String? _selectedPublisher;
+  int? _selectedCategoryId;
+  int? _selectedBrandId;
   int _selectedTabIndex = 0;
 
   String get searchQuery => _searchQuery;
   String? get selectedCategory => _selectedCategory;
   String? get selectedPublisher => _selectedPublisher;
+  int? get selectedCategoryId => _selectedCategoryId;
+  int? get selectedBrandId => _selectedBrandId;
   int get selectedTabIndex => _selectedTabIndex;
 
   void setSearchQuery(String query) {
@@ -17,14 +21,21 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSelectedCategory(String? category) {
+  void setSelectedCategory(String? category, {int? id}) {
     _selectedCategory = category;
+    _selectedCategoryId = category == null ? null : id;
     _selectedPublisher = null;
+    _selectedBrandId = null;
     notifyListeners();
   }
 
-  void setSelectedPublisher(String? publisher) {
+  void setSelectedPublisher(String? publisher, {int? id}) {
     _selectedPublisher = publisher;
+    _selectedBrandId = publisher == null ? null : id;
+    if (publisher != null) {
+      _selectedCategory = null;
+      _selectedCategoryId = null;
+    }
     notifyListeners();
   }
 
@@ -41,7 +52,9 @@ class AppProvider extends ChangeNotifier {
   void clearFilters() {
     _searchQuery = '';
     _selectedCategory = null;
+    _selectedCategoryId = null;
     _selectedPublisher = null;
+    _selectedBrandId = null;
     notifyListeners();
   }
 }

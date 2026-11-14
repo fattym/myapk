@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import '../screens/cart_screen.dart';
 import '../screens/categories_screen.dart';
 import '../screens/catalog_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/schools_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
-import '../widgets/custom_app_bar.dart';
 import '../widgets/modals/ocr_scanner_modal.dart';
 import '../widgets/modals/trade_in_modal.dart';
 
@@ -21,12 +19,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   void _navigateToTab(int index) {
     setState(() => _currentIndex = index);
-  }
-
-  void _navigateToCart() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const CartScreen()),
-    );
   }
 
   void _showOcrScanner() {
@@ -46,11 +38,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        onCartTap: _navigateToCart,
-        onAiScanTap: _showOcrScanner,
-      ),
-      body: IndexedStack(
+      body: Column(
+        children: [
+          Expanded(
+            child: IndexedStack(
         index: _currentIndex,
         children: [
           HomeScreen(
@@ -62,6 +53,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
           CategoriesScreen(onNavigateToTab: _navigateToTab),
           const CatalogScreen(),
           const SchoolsScreen(),
+        ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: BottomNavBar(

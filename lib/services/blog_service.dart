@@ -45,7 +45,7 @@ final class BlogService extends BaseService {
   Future<List<BlogCategoryItem>> fetchCategories() async {
     try {
       final resp = await dio.get('/v1/categories');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => BlogCategoryItem.fromJson(
               Map<String, dynamic>.from(e as Map)))
@@ -58,7 +58,7 @@ final class BlogService extends BaseService {
   Future<List<BlogTagItem>> fetchTags() async {
     try {
       final resp = await dio.get('/v1/tags');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) =>
               BlogTagItem.fromJson(Map<String, dynamic>.from(e as Map)))

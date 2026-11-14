@@ -7,6 +7,12 @@ import '../utils/icons.dart';
 import '../theme/colors.dart';
 
 class ProductCard extends StatefulWidget {
+  /// Grid cell height that fits the card content for these products.
+  static double gridExtent(Iterable<Product> products) {
+    final hasToggle = products.any((p) => (p.preOwnedPrice ?? 0) > 0);
+    return 262 + (hasToggle ? 44 : 0);
+  }
+
   final Product product;
   final bool showConditionToggle;
   final Function(Product)? onAddToCart;
@@ -27,77 +33,88 @@ class _ProductCardState extends State<ProductCard> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final hasPreowned = widget.product.preOwnedPrice != null && widget.product.preOwnedPrice! > 0;
     final displayPrice = _isPreowned
         ? (widget.product.preOwnedPrice ?? widget.product.newPrice)
         : widget.product.newPrice;
 
     return Card(
-      elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.08),
+      elevation: 0,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(color: AppColors.dividerColor),
       ),
        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Product icon
+            // Product image (falls back to an icon)
             Container(
-              height: 100,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF4EEF8),
-              ),
-              child: Icon(
-                getIconForName(widget.product.iconName),
-                size: 48,
-                color: AppColors.primaryPurple,
-              ),
+              height: 120,
+              color: const Color(0xFFF4EEF8),
+              child: (widget.product.imageUrl != null &&
+                      widget.product.imageUrl!.isNotEmpty)
+                  ? Image.network(
+                      widget.product.imageUrl!,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => _iconFallback(),
+                      loadingBuilder: (context, child, progress) =>
+                          progress == null
+                              ? child
+                              : const Center(
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  ),
+                                ),
+                    )
+                  : _iconFallback(),
             ),
             // Product details (fills available space so the card never overflows
             // its grid cell; texts are single-line and truncate when needed)
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       widget.product.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
+                      style: const TextStyle(
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        height: 1.3,
+                        color: AppColors.textPrimary,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${widget.product.category} \u2022 ${widget.product.publisher}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Grade: ${widget.product.grade}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[500],
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
                     // Price
-                    Text(
-                      formatKES(displayPrice),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: AppColors.primaryPurple,
-                        fontWeight: FontWeight.w700,
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: formatKES(displayPrice),
+                            style: const TextStyle(
+                              color: AppColors.primaryPurple,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                          ),
+                          if (!_isPreowned && widget.product.oldPrice != null)
+                            TextSpan(
+                              text: '  ${widget.product.oldPrice!.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                        ],
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -120,9 +137,9 @@ class _ProductCardState extends State<ProductCard> {
             ),
             // Add to Cart button
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
               child: SizedBox(
-                height: 36,
+                height: 40,
                 child: ElevatedButton(
                   onPressed: () {
                     final cart = context.read<CartProvider>();
@@ -138,7 +155,7 @@ class _ProductCardState extends State<ProductCard> {
                       ),
                     );
                   },
-                  child: const Text('Add to Cart'),
+                  child: const Text('Add to cart'),
                 ),
               ),
             ),
@@ -146,6 +163,12 @@ class _ProductCardState extends State<ProductCard> {
         ),
     );
   }
+
+  Widget _iconFallback() => Icon(
+        getIconForName(widget.product.iconName),
+        size: 44,
+        color: AppColors.primaryPurple,
+      );
 
   Widget _buildConditionButton(String label, bool selected) {
     return Expanded(

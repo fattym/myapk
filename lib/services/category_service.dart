@@ -10,7 +10,7 @@ final class CategoryService extends BaseService {
   Future<List<ProductCategory>> fetchCategories() async {
     try {
       final resp = await dio.get('/v1/ecommerce/product-categories');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) =>
               ProductCategory.fromJson(Map<String, dynamic>.from(e as Map)))
@@ -58,7 +58,7 @@ final class CategoryService extends BaseService {
   Future<List<Brand>> fetchBrands() async {
     try {
       final resp = await dio.get('/v1/ecommerce/brands');
-      final data = resp.data as List? ?? [];
+      final data = listFrom(resp.data);
       return data
           .map((e) => Brand.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
