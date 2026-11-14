@@ -4,9 +4,10 @@ import 'providers/app_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/catalog_provider.dart';
-import 'providers/profile_provider.dart';
 import 'providers/schools_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/main_shell_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -22,7 +23,6 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => AppProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
         ChangeNotifierProvider(create: (_) => SchoolsProvider()),
@@ -31,9 +31,38 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'MyBidhaa',
         theme: AppTheme.lightTheme,
-        home: const MainShellScreen(),
+        home: const _StartGate(),
         debugShowCheckedModeBanner: false,
       ),
+    );
+  }
+}
+
+/// Shows the onboarding once on first launch, then the main app.
+class _StartGate extends StatelessWidget {
+  const _StartGate();
+
+  Future<bool> _done() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(onboardingDoneKey) ?? false;
+    } catch (_) {
+      return true; // never block the app if storage is unavailable
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _done(),
+      builder: (context, snap) {
+        if (!snap.hasData) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        return snap.data! ? const MainShellScreen() : const OnboardingScreen();
+      },
     );
   }
 }

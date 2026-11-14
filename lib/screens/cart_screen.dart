@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/delivery_type.dart';
 import '../providers/cart_provider.dart';
-import '../providers/profile_provider.dart';
 import '../theme/colors.dart';
 import '../utils/formatters.dart';
 import '../utils/icons.dart';
@@ -647,7 +646,6 @@ class CartScreen extends StatelessWidget {
   }
 
   Future<void> _openWhatsApp(BuildContext context, CartProvider cart) async {
-    final profileProvider = context.read<ProfileProvider>();
     final buffer = StringBuffer();
     buffer.writeln('MyBidhaa Order Summary');
     buffer.writeln('');
@@ -670,8 +668,6 @@ class CartScreen extends StatelessWidget {
     }
     buffer.writeln('');
     buffer.writeln('TOTAL: ${formatKES(cart.total)}');
-    buffer.writeln('');
-    buffer.writeln('Student: ${profileProvider.selectedProfile.displayName}');
     buffer.writeln('');
     buffer.writeln('I would like to place this order. Please confirm.');
 

@@ -21,6 +21,8 @@ class SchoolsScreen extends StatefulWidget {
 }
 
 class _SchoolsScreenState extends State<SchoolsScreen> {
+  String _query = '';
+
   @override
   void initState() {
     super.initState();
@@ -118,7 +120,9 @@ class _SchoolsScreenState extends State<SchoolsScreen> {
                 ),
                 const SizedBox(height: 16),
                 if (school == null)
-                  _PopularSchools(
+                  _SchoolSearchList(
+                    query: _query,
+                    onQuery: (v) => setState(() => _query = v),
                     onPick: (s) => context.read<SchoolsProvider>().selectSchool(s),
                   )
                 else if (apiId == null)
@@ -486,60 +490,85 @@ class _BookRow extends StatelessWidget {
   }
 }
 
-class _PopularSchools extends StatelessWidget {
+class _SchoolSearchList extends StatelessWidget {
+  final String query;
+  final ValueChanged<String> onQuery;
   final ValueChanged<PartnerSchool> onPick;
-  const _PopularSchools({required this.onPick});
+  const _SchoolSearchList({
+    required this.query,
+    required this.onQuery,
+    required this.onPick,
+  });
 
   @override
   Widget build(BuildContext context) {
     final schools = context.watch<SchoolsProvider>();
-    if (schools.status == SchoolsStatus.loading && schools.schools.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(32),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-    final list = schools.schools.take(8).toList();
+    final q = query.trim().toLowerCase();
+    final matches = schools.schools
+        .where((s) => q.isEmpty || s.name.toLowerCase().contains(q))
+        .toList();
+    final list = matches.take(60).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'PARTNER SCHOOLS',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-            letterSpacing: 0.4,
-          ),
+        AppSearchField(
+          hint: 'Search by school name',
+          initialValue: query,
+          onChanged: onQuery,
         ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.dividerColor),
+        const SizedBox(height: 16),
+        if (schools.status == SchoolsStatus.loading && schools.schools.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(32),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else ...[
+          Text(
+            q.isEmpty
+                ? '${matches.length} PARTNER SCHOOLS'
+                : '${matches.length} MATCHING SCHOOLS',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              letterSpacing: 0.4,
+            ),
           ),
-          child: Column(
-            children: [
-              for (var i = 0; i < list.length; i++)
-                ListTile(
-                  shape: i == 0
-                      ? const RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(20)))
-                      : null,
-                  leading: const Icon(Icons.school_outlined,
-                      color: AppColors.primaryPurple),
-                  title: Text(list[i].name,
-                      style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle:
-                      list[i].location.isEmpty ? null : Text(list[i].location),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => onPick(list[i]),
-                ),
-            ],
-          ),
-        ),
+          const SizedBox(height: 8),
+          if (list.isEmpty)
+            const _Notice('No school matches your search.')
+          else
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.dividerColor),
+              ),
+              child: Column(
+                children: [
+                  for (var i = 0; i < list.length; i++) ...[
+                    if (i > 0) const Divider(height: 1, indent: 16),
+                    ListTile(
+                      leading: const Icon(Icons.school_outlined,
+                          color: AppColors.primaryPurple),
+                      title: Text(
+                        list[i].name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      subtitle: list[i].location.isEmpty
+                          ? null
+                          : Text(list[i].location),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => onPick(list[i]),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
       ],
     );
   }

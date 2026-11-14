@@ -3,24 +3,24 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/app_provider.dart';
 import '../providers/catalog_provider.dart';
+import '../providers/schools_provider.dart';
 import '../theme/colors.dart';
 import '../widgets/app_header.dart';
 import '../widgets/hero_banner.dart';
 import '../widgets/product_card.dart';
-import '../widgets/sell_trade_in_card.dart';
+import '../widgets/brand_logo.dart';
+import '../widgets/home_slider.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onScanTap;
   final VoidCallback? onSearchSchoolTap;
   final Function(int)? onNavigateToTab;
-  final VoidCallback? onTradeInTap;
 
   const HomeScreen({
     super.key,
     this.onScanTap,
     this.onSearchSchoolTap,
     this.onNavigateToTab,
-    this.onTradeInTap,
   });
 
   @override
@@ -35,6 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final c = context.read<CatalogProvider>();
       c.loadCategories();
       c.loadFeatured();
+      c.loadDeals();
+      c.loadSliders();
+      context.read<SchoolsProvider>().loadSchools();
     });
   }
 
@@ -129,28 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Row(
                   children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryPurple,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.menu_book,
-                          color: AppColors.accentGold, size: 20),
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'MyBidhaa',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primaryPurple,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                    ),
+                    const Expanded(child: Align(alignment: Alignment.centerLeft, child: BrandLogo())),
                     const CartButton(),
                   ],
                 ),
@@ -168,6 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
+            HomeSlider(onTap: () => widget.onNavigateToTab?.call(2)),
+            const SizedBox(height: 16),
             HeroBanner(
               onScanTap: widget.onScanTap,
               onSearchSchoolTap: widget.onSearchSchoolTap,
@@ -187,6 +171,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+            if (catalog.deals.isNotEmpty) ...[
+              _sectionHeader('Deals & discounts', onSeeAll: () {
+                context.read<AppProvider>()
+                  ..clearFilters()
+                  ..setDiscountedOnly(true);
+                widget.onNavigateToTab?.call(2);
+              }),
+              SizedBox(
+                height: ProductCard.gridExtent(catalog.deals),
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: catalog.deals.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (context, i) => SizedBox(
+                    width: 168,
+                    child: ProductCard(product: catalog.deals[i]),
+                  ),
+                ),
+              ),
+            ],
             _sectionHeader('Shop by category',
                 onSeeAll: () => widget.onNavigateToTab?.call(1)),
             SizedBox(
@@ -236,10 +241,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: featured.length,
                 itemBuilder: (context, i) => ProductCard(product: featured[i]),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: SellTradeInCard(onTap: widget.onTradeInTap),
             ),
             const SizedBox(height: 16),
           ],

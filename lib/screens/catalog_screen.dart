@@ -43,6 +43,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         brandId: app.selectedBrandId,
         categoryName: app.selectedCategory,
         brandName: app.selectedPublisher,
+        discountedOnly: app.discountedOnly,
       );
     });
   }
@@ -112,7 +113,8 @@ class _CatalogScreenState extends State<CatalogScreen> {
       );
     }
 
-    final hasFilters = app.selectedCategory != null ||
+    final hasFilters = app.discountedOnly ||
+        app.selectedCategory != null ||
         app.selectedPublisher != null ||
         app.searchQuery.isNotEmpty;
     final countText = catalog.status == CatalogStatus.loading
@@ -141,6 +143,19 @@ class _CatalogScreenState extends State<CatalogScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               children: [
+                if (app.discountedOnly)
+                  _filterChip(
+                    'On discount',
+                    selected: true,
+                    onDeleted: () =>
+                        context.read<AppProvider>().setDiscountedOnly(false),
+                  )
+                else
+                  _filterChip(
+                    'On discount',
+                    onTap: () =>
+                        context.read<AppProvider>().setDiscountedOnly(true),
+                  ),
                 if (app.selectedCategory != null)
                   _filterChip(
                     app.selectedCategory!,

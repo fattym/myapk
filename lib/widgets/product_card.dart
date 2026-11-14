@@ -49,29 +49,54 @@ class _ProductCardState extends State<ProductCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Product image (falls back to an icon)
-            Container(
-              height: 120,
-              color: const Color(0xFFF4EEF8),
-              child: (widget.product.imageUrl != null &&
-                      widget.product.imageUrl!.isNotEmpty)
-                  ? Image.network(
-                      widget.product.imageUrl!,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, _, _) => _iconFallback(),
-                      loadingBuilder: (context, child, progress) =>
-                          progress == null
-                              ? child
-                              : const Center(
-                                  child: SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  ),
-                                ),
-                    )
-                  : _iconFallback(),
+            // Product image (falls back to an icon) with discount badge
+            Stack(
+              children: [
+                            Container(
+                              height: 120,
+                              color: const Color(0xFFF4EEF8),
+                              child: (widget.product.imageUrl != null &&
+                                      widget.product.imageUrl!.isNotEmpty)
+                                  ? Image.network(
+                                      widget.product.imageUrl!,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (_, _, _) => _iconFallback(),
+                                      loadingBuilder: (context, child, progress) =>
+                                          progress == null
+                                              ? child
+                                              : const Center(
+                                                  child: SizedBox(
+                                                    width: 20,
+                                                    height: 20,
+                                                    child: CircularProgressIndicator(
+                                                        strokeWidth: 2),
+                                                  ),
+                                                ),
+                                    )
+                                  : _iconFallback(),
+                            ),
+                if (widget.product.discountPercent != null && !_isPreowned)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFB91C1C),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '-${widget.product.discountPercent}%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             // Product details (fills available space so the card never overflows
             // its grid cell; texts are single-line and truncate when needed)

@@ -111,6 +111,16 @@ class Product {
     );
   }
 
+  /// True when the live price is below the list price (sale / promotion).
+  /// Discounts above 90% are treated as bad data and not advertised.
+  bool get isDiscounted =>
+      oldPrice != null && oldPrice! > newPrice && newPrice * 10 >= oldPrice!;
+
+  /// Percentage off, rounded (null when not discounted).
+  int? get discountPercent => isDiscounted
+      ? (((oldPrice! - newPrice) / oldPrice!) * 100).round().clamp(1, 99)
+      : null;
+
   double get currentPrice {
     if (conditionState == 'preowned' && preOwnedPrice != null) {
       return preOwnedPrice!;

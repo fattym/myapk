@@ -4,13 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:mybidhaa/providers/app_provider.dart';
 import 'package:mybidhaa/providers/auth_provider.dart';
 import 'package:mybidhaa/providers/cart_provider.dart';
-import 'package:mybidhaa/providers/profile_provider.dart';
+import 'package:mybidhaa/providers/catalog_provider.dart';
 import 'package:mybidhaa/providers/schools_provider.dart';
 import 'package:mybidhaa/screens/cart_screen.dart';
 import 'package:mybidhaa/screens/main_shell_screen.dart';
 import 'package:mybidhaa/widgets/modals/mpesa_stk_modal.dart';
 import 'package:mybidhaa/widgets/modals/ocr_scanner_modal.dart';
-import 'package:mybidhaa/widgets/modals/trade_in_modal.dart';
 
 void main() {
   Future<void> pumpAt(
@@ -36,7 +35,7 @@ void main() {
         child: MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => CartProvider()),
-          ChangeNotifierProvider(create: (_) => ProfileProvider()),
+          ChangeNotifierProvider(create: (_) => CatalogProvider()),
           ChangeNotifierProvider(create: (_) => AppProvider()),
           ChangeNotifierProvider(create: (_) => AuthProvider()),
           ChangeNotifierProvider(create: (_) => SchoolsProvider()),
@@ -60,19 +59,8 @@ void main() {
   testWidgets('cart renders without overflow at 375x667',
       (t) => pumpAt(t, const Size(375, 667), const CartScreen()));
 
-  testWidgets('trade_in renders without overflow at 320x568',
-      (t) => pumpAt(t, const Size(320, 568), const TradeInModal()));
   testWidgets('ocr_scanner renders without overflow at 320x568',
       (t) => pumpAt(t, const Size(320, 568), const OcrScannerModal()));
   testWidgets('mpesa_stk renders without overflow at 320x568',
       (t) => pumpAt(t, const Size(320, 568), const MpesaStkModal(totalAmount: 1250)));
-
-  testWidgets('trade_in with keyboard insets renders without overflow at 320x568',
-      (t) => pumpAt(
-            t,
-            const Size(320, 568),
-            const TradeInModal(),
-            viewInsets: const EdgeInsets.only(bottom: 256),
-          ));
 }
-

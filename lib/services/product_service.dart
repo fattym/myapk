@@ -12,6 +12,7 @@ final class ApiProductService extends BaseService {
     int? categoryId,
     List<int>? categoryIds,
     int? brandId,
+    bool discountedOnly = false,
     int page = 1,
     int perPage = 12,
   }) async {
@@ -24,6 +25,7 @@ final class ApiProductService extends BaseService {
     final cats = categoryIds ?? (categoryId != null ? [categoryId] : null);
     if (cats != null && cats.isNotEmpty) query['categories[]'] = cats;
     if (brandId != null) query['brands[]'] = brandId;
+    if (discountedOnly) query['discounted_only'] = 1;
     try {
       final resp = await dio.get(
         '/v1/ecommerce/products',

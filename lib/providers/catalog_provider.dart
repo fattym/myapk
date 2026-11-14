@@ -10,6 +10,7 @@ import '../models/publisher.dart';
 import '../services/api_error.dart';
 import '../services/category_service.dart';
 import '../services/product_service.dart';
+import '../services/slider_service.dart';
 
 enum CatalogStatus { idle, loading, success, error }
 
@@ -134,6 +135,7 @@ final class CatalogProvider extends ChangeNotifier {
   int? _brandId;
   String? _categoryName;
   String? _brandName;
+  bool _discountedOnly = false;
   Timer? _debounce;
   int _requestToken = 0;
 
@@ -144,19 +146,22 @@ final class CatalogProvider extends ChangeNotifier {
     int? brandId,
     String? categoryName,
     String? brandName,
+    bool discountedOnly = false,
     bool force = false,
   }) {
     final same = query == _query &&
         categoryId == _categoryId &&
         brandId == _brandId &&
         categoryName == _categoryName &&
-        brandName == _brandName;
+        brandName == _brandName &&
+        discountedOnly == _discountedOnly;
     if (same && !force && _status != CatalogStatus.idle) return;
     _query = query;
     _categoryId = categoryId;
     _brandId = brandId;
     _categoryName = categoryName;
     _brandName = brandName;
+    _discountedOnly = discountedOnly;
     _debounce?.cancel();
     _status = CatalogStatus.loading;
     notifyListeners();
@@ -183,6 +188,7 @@ final class CatalogProvider extends ChangeNotifier {
         keyword: _query,
         categoryIds: _categoryId == null ? null : _descendantIds(_categoryId!),
         brandId: _brandId,
+        discountedOnly: _discountedOnly,
         page: page,
       );
       if (token != _requestToken) return;
@@ -219,6 +225,47 @@ final class CatalogProvider extends ChangeNotifier {
     _page = 1;
     _lastPage = 1;
     _status = CatalogStatus.error;
+  }
+
+  // ---- home banners ----
+  List<SliderItem> _sliders = [];
+  List<SliderItem> get sliders => _sliders;
+  bool _slidersLoaded = false;
+  Future<void> loadSliders() async {
+    if (_slidersLoaded) return;
+    _slidersLoaded = true;
+    try {
+      _sliders = (await SliderService.instance.fetchSliders())
+          .where((s) => (s.image ?? '').isNotEmpty)
+          .toList();
+    } catch (_) {
+      _slidersLoaded = false;
+    }
+    notifyListeners();
+  }
+
+  // ---- automatic discount detector (home "Deals") ----
+  List<Product> _deals = [];
+  List<Product> get deals => _deals;
+  bool _dealsLoaded = false;
+
+  /// Fetches products the server flags as discounted, keeps the ones whose live
+  /// price is really below the list price, and ranks them by percentage off.
+  Future<void> loadDeals() async {
+    if (_dealsLoaded) return;
+    _dealsLoaded = true;
+    try {
+      final page = await ApiProductService.instance
+          .fetchApiProducts(discountedOnly: true);
+      final all = page.data.map(Product.fromApi).where((p) => p.isDiscounted);
+      final sorted = all.toList()
+        ..sort((a, b) =>
+            (b.discountPercent ?? 0).compareTo(a.discountPercent ?? 0));
+      _deals = sorted.take(10).toList();
+    } catch (_) {
+      _dealsLoaded = false;
+    }
+    notifyListeners();
   }
 
   // ---- home "recommended" products ----

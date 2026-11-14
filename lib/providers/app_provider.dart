@@ -7,6 +7,7 @@ class AppProvider extends ChangeNotifier {
   String? _selectedPublisher;
   int? _selectedCategoryId;
   int? _selectedBrandId;
+  bool _discountedOnly = false;
   int _selectedTabIndex = 0;
 
   String get searchQuery => _searchQuery;
@@ -14,6 +15,12 @@ class AppProvider extends ChangeNotifier {
   String? get selectedPublisher => _selectedPublisher;
   int? get selectedCategoryId => _selectedCategoryId;
   int? get selectedBrandId => _selectedBrandId;
+  bool get discountedOnly => _discountedOnly;
+
+  void setDiscountedOnly(bool value) {
+    _discountedOnly = value;
+    notifyListeners();
+  }
   int get selectedTabIndex => _selectedTabIndex;
 
   void setSearchQuery(String query) {
@@ -55,6 +62,7 @@ class AppProvider extends ChangeNotifier {
     _selectedCategoryId = null;
     _selectedPublisher = null;
     _selectedBrandId = null;
+    _discountedOnly = false;
     notifyListeners();
   }
 }

@@ -5,7 +5,6 @@ import '../screens/home_screen.dart';
 import '../screens/schools_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/modals/ocr_scanner_modal.dart';
-import '../widgets/modals/trade_in_modal.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -28,13 +27,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
     );
   }
 
-  void _showTradeInModal() {
-    showDialog(
-      context: context,
-      builder: (context) => const TradeInModal(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,7 +40,6 @@ class _MainShellScreenState extends State<MainShellScreen> {
             onScanTap: _showOcrScanner,
             onSearchSchoolTap: () => _navigateToTab(3),
             onNavigateToTab: _navigateToTab,
-            onTradeInTap: _showTradeInModal,
           ),
           CategoriesScreen(onNavigateToTab: _navigateToTab),
           const CatalogScreen(),
