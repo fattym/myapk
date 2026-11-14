@@ -4,7 +4,6 @@ import '../data/products.dart';
 import '../models/api_models.dart';
 import '../models/partner_school.dart';
 import '../models/product.dart';
-import '../providers/auth_provider.dart';
 import '../providers/schools_provider.dart';
 import '../theme/colors.dart';
 import '../utils/formatters.dart';
@@ -25,10 +24,7 @@ class _SchoolsScreenState extends State<SchoolsScreen> {
   }
 
   void _load() {
-    final authenticated =
-        Provider.of<AuthProvider>(context, listen: false).isAuthenticated;
-    Provider.of<SchoolsProvider>(context, listen: false)
-        .loadSchools(authenticated: authenticated);
+    Provider.of<SchoolsProvider>(context, listen: false).loadSchools();
   }
 
   List<Product> _sampleBooklistForSchool(String schoolName) {
@@ -44,36 +40,13 @@ class _SchoolsScreenState extends State<SchoolsScreen> {
   }
 
   void _showBooklist(PartnerSchool school) {
-    final authenticated =
-        Provider.of<AuthProvider>(context, listen: false).isAuthenticated;
-    final provider = Provider.of<SchoolsProvider>(context, listen: false);
-
-    final bool useApi = authenticated && school.apiId != null;
-    final SchoolBooklist? booklist = useApi ? provider.booklistFor(school.apiId!) : null;
-
     showDialog(
       context: context,
       barrierColor: Colors.black54,
-      builder: (dialogContext) {
-        if (useApi && booklist == null) {
-          // Trigger an on-demand fetch the first time the dialog opens.
-          provider.loadBooklist(
-              authenticated: authenticated, apiId: school.apiId!);
-        }
-        return _SchoolBooklistDialog(
-          school: school,
-          booklist: useApi ? provider.booklistFor(school.apiId!) : null,
-          sampleProducts:
-              useApi ? null : _sampleBooklistForSchool(school.name),
-          onRetry: useApi
-              ? () {
-                  provider.loadBooklist(
-                      authenticated: authenticated, apiId: school.apiId!);
-                  setState(() {});
-                }
-              : null,
-        );
-      },
+      builder: (_) => _SchoolBooklistDialog(
+        school: school,
+        sampleProducts: _sampleBooklistForSchool(school.name),
+      ),
     );
   }
 
@@ -130,38 +103,60 @@ class _SchoolsScreenState extends State<SchoolsScreen> {
   }
 }
 
-class _SchoolBooklistDialog extends StatelessWidget {
-  const _SchoolBooklistDialog({
-    required this.school,
-    this.booklist,
-    this.sampleProducts,
-    this.onRetry,
-  });
+class _SchoolBooklistDialog extends StatefulWidget {
+  const _SchoolBooklistDialog({required this.school, this.sampleProducts});
 
   final PartnerSchool school;
-  final SchoolBooklist? booklist;
   final List<Product>? sampleProducts;
-  final VoidCallback? onRetry;
 
-  bool get _isApi => booklist != null || sampleProducts == null;
+  @override
+  State<_SchoolBooklistDialog> createState() => _SchoolBooklistDialogState();
+}
+
+class _SchoolBooklistDialogState extends State<_SchoolBooklistDialog> {
+  int? _selectedGradeId; // null = all grades
+
+  int? get _apiId => widget.school.apiId;
+
+  @override
+  void initState() {
+    super.initState();
+    final id = _apiId;
+    if (id != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<SchoolsProvider>().loadBooklist(apiId: id);
+        }
+      });
+    }
+  }
+
+  void _retry() {
+    final id = _apiId;
+    if (id != null) context.read<SchoolsProvider>().loadBooklist(apiId: id);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bool loading = _isApi && (booklist == null && onRetry != null);
+    final provider = context.watch<SchoolsProvider>();
+    final id = _apiId;
+    final SchoolBooklist? booklist = id == null ? null : provider.booklistFor(id);
+    final bool loading =
+        id != null && booklist == null && !provider.booklistFailed(id);
+    final bool failed =
+        id != null && booklist == null && provider.booklistFailed(id);
 
     return AlertDialog(
       backgroundColor: AppColors.surfaceWhite,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Row(
         children: [
           const Icon(Icons.school, color: AppColors.primaryPurple),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              school.name,
+              widget.school.name,
               style: theme.textTheme.titleMedium,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -170,19 +165,21 @@ class _SchoolBooklistDialog extends StatelessWidget {
         ],
       ),
       content: SizedBox(
-        width: double.infinity,
+        width: double.maxFinite,
         child: loading
             ? const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Center(child: CircularProgressIndicator()),
               )
-            : _buildContent(context),
+            : failed
+                ? Text(provider.errorMessage ?? 'Failed to load booklist.')
+                : SingleChildScrollView(child: _buildContent(context, booklist)),
       ),
       actions: [
-        if (onRetry != null)
+        if (failed)
           TextButton.icon(
             icon: const Icon(Icons.refresh, size: 16),
-            onPressed: onRetry,
+            onPressed: _retry,
             label: const Text('Retry'),
           ),
         TextButton(
@@ -193,23 +190,50 @@ class _SchoolBooklistDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context) {
+  Widget _buildContent(BuildContext context, SchoolBooklist? booklist) {
     final theme = Theme.of(context);
+    final header = Text(
+      '${widget.school.location} \u2022 ${widget.school.code}',
+      style: const TextStyle(color: Colors.grey, fontSize: 13),
+    );
 
-    if (_isApi) {
-      final grades = booklist?.grades ?? [];
-      if (grades.isEmpty) {
-        return const Text('No booklist available');
-      }
+    if (booklist != null) {
+      final all = booklist.grades;
+      if (all.isEmpty) return const Text('No booklist available');
+      // Keep selection valid if the data changed.
+      final selected = all.any((g) => g.id == _selectedGradeId)
+          ? _selectedGradeId
+          : null;
+      final shown =
+          selected == null ? all : all.where((g) => g.id == selected).toList();
       return Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${school.location} \u2022 ${school.code}',
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
+          header,
+          const SizedBox(height: 12),
+          DropdownButtonFormField<int?>(
+            value: selected,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Select grade',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            items: [
+              const DropdownMenuItem<int?>(
+                value: null,
+                child: Text('All grades'),
+              ),
+              ...all.map((g) => DropdownMenuItem<int?>(
+                    value: g.id,
+                    child: Text(g.name, overflow: TextOverflow.ellipsis),
+                  )),
+            ],
+            onChanged: (v) => setState(() => _selectedGradeId = v),
           ),
           const SizedBox(height: 12),
-          ...grades.map((grade) => Column(
+          ...shown.map((grade) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -220,45 +244,37 @@ class _SchoolBooklistDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
+                  if (grade.products.isEmpty)
+                    const Text('No books listed for this grade',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
                   ...grade.products.map((product) => ListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          product.name,
-                          style: const TextStyle(fontSize: 13),
-                        ),
+                        dense: true,
+                        title: Text(product.name,
+                            style: const TextStyle(fontSize: 13)),
                         subtitle: Text(
                           '${product.quantity} required \u2022 ${formatKES(product.effectivePrice)}',
                           style: const TextStyle(fontSize: 11),
                         ),
                       )),
+                  const SizedBox(height: 8),
                 ],
               )),
         ],
       );
     }
 
-    final books = sampleProducts ?? [];
-    if (books.isEmpty) {
-      return const Text('No booklist available');
-    }
+    final books = widget.sampleProducts ?? [];
+    if (books.isEmpty) return const Text('No booklist available');
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          '${school.location} \u2022 ${school.code}',
-          style: const TextStyle(color: Colors.grey, fontSize: 13),
-        ),
+        header,
         const SizedBox(height: 12),
         ...books.map((product) => ListTile(
-              leading: const Icon(
-                Icons.book,
-                color: AppColors.primaryPurple,
-                size: 20,
-              ),
-              title: Text(
-                product.title,
-                style: const TextStyle(fontSize: 13),
-              ),
+              leading: const Icon(Icons.book,
+                  color: AppColors.primaryPurple, size: 20),
+              title: Text(product.title, style: const TextStyle(fontSize: 13)),
               subtitle: Text(
                 '${product.publisher} \u2022 ${formatKES(product.newPrice)}',
                 style: const TextStyle(fontSize: 11),

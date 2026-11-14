@@ -7,33 +7,20 @@ final class PaymentService extends BaseService {
   static final PaymentService instance = PaymentService._internal();
   PaymentService._internal();
 
-  /// Trigger an STK push. `phoneNumber` accepts 07XXXXXXXX, 2547XXXXXXXX.
+  /// STK push is initiated by checkout web flow (Mpesa gateway). Not exposed as /v1/payments/stk-push.
   Future<StkPushResult> stkPush({
     required String phoneNumber,
     required double amount,
     required int orderId,
     String? accountReference,
   }) async {
-    final body = <String, dynamic>{
-      'phone_number': phoneNumber,
-      'amount': amount,
-      'order_id': orderId,
-    };
-    if (accountReference != null) body['account_reference'] = accountReference;
-    try {
-      final resp = await dio.post('/v1/payments/stk-push', data: body);
-      return StkPushResult.fromJson(
-        Map<String, dynamic>.from(resp.data as Map),
-      );
-    } on DioException catch (e) {
-      throw ApiError.fromDioException(e);
-    }
+    throw ApiError(message: 'STK push is handled by checkout/payment flow; no /v1/payments/stk-push API is available.');
   }
 
-  /// Poll the status of an order's payment (after STK push).
-  Future<PaymentStatus> paymentStatus(int orderId) async {
+  /// Poll M-Pesa Daraja status by CheckoutRequestID (public web route).
+  Future<PaymentStatus> paymentStatus(String checkoutRequestId) async {
     try {
-      final resp = await dio.get('/v1/payments/status/$orderId');
+      final resp = await dio.get('/daraja/status/$checkoutRequestId');
       return PaymentStatus.fromJson(
         Map<String, dynamic>.from(resp.data as Map),
       );
