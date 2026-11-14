@@ -21,6 +21,12 @@ const List<_Page> _pages = [
         'book with prices.',
   ),
   _Page(
+    Icons.document_scanner_outlined,
+    'Scan or upload your list',
+    'Take a photo of a printed booklist and we find the books for you, or '
+        'send the file to us on WhatsApp.',
+  ),
+  _Page(
     Icons.shopping_cart_checkout,
     'Order your way',
     'Add the whole list to your cart in one tap, then pay with M-Pesa or '

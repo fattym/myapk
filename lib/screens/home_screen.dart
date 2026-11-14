@@ -13,12 +13,14 @@ import '../widgets/home_slider.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onScanTap;
+  final VoidCallback? onUploadTap;
   final VoidCallback? onSearchSchoolTap;
   final Function(int)? onNavigateToTab;
 
   const HomeScreen({
     super.key,
     this.onScanTap,
+    this.onUploadTap,
     this.onSearchSchoolTap,
     this.onNavigateToTab,
   });
@@ -163,8 +165,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   _quickAction(Icons.document_scanner_outlined, 'Scan list',
                       AppColors.primaryPurple, widget.onScanTap),
                   const SizedBox(width: 10),
-                  _quickAction(Icons.school_outlined, 'Schools',
-                      AppColors.primaryPurple, widget.onSearchSchoolTap),
+                  _quickAction(Icons.upload_file_outlined, 'Upload list',
+                      AppColors.primaryPurple, widget.onUploadTap),
                   const SizedBox(width: 10),
                   _quickAction(Icons.chat_outlined, 'WhatsApp',
                       const Color(0xFF147A3F), _openWhatsApp),

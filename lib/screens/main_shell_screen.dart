@@ -4,7 +4,8 @@ import '../screens/catalog_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/schools_screen.dart';
 import '../widgets/bottom_nav_bar.dart';
-import '../widgets/modals/ocr_scanner_modal.dart';
+import 'scan_booklist_screen.dart';
+import 'upload_booklist_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -20,10 +21,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
     setState(() => _currentIndex = index);
   }
 
-  void _showOcrScanner() {
-    showDialog(
-      context: context,
-      builder: (context) => const OcrScannerModal(),
+  void _openScan() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ScanBooklistScreen()),
+    );
+  }
+
+  void _openUpload() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const UploadBooklistScreen()),
     );
   }
 
@@ -37,7 +43,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
         index: _currentIndex,
         children: [
           HomeScreen(
-            onScanTap: _showOcrScanner,
+            onScanTap: _openScan,
+            onUploadTap: _openUpload,
             onSearchSchoolTap: () => _navigateToTab(3),
             onNavigateToTab: _navigateToTab,
           ),

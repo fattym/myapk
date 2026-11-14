@@ -9,7 +9,7 @@ import 'package:mybidhaa/providers/schools_provider.dart';
 import 'package:mybidhaa/screens/cart_screen.dart';
 import 'package:mybidhaa/screens/main_shell_screen.dart';
 import 'package:mybidhaa/widgets/modals/mpesa_stk_modal.dart';
-import 'package:mybidhaa/widgets/modals/ocr_scanner_modal.dart';
+import 'package:mybidhaa/screens/scan_booklist_screen.dart';
 
 void main() {
   Future<void> pumpAt(
@@ -60,7 +60,7 @@ void main() {
       (t) => pumpAt(t, const Size(375, 667), const CartScreen()));
 
   testWidgets('ocr_scanner renders without overflow at 320x568',
-      (t) => pumpAt(t, const Size(320, 568), const OcrScannerModal()));
+      (t) => pumpAt(t, const Size(320, 568), const ScanBooklistScreen()));
   testWidgets('mpesa_stk renders without overflow at 320x568',
       (t) => pumpAt(t, const Size(320, 568), const MpesaStkModal(totalAmount: 1250)));
 }
