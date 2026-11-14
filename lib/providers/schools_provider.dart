@@ -4,6 +4,7 @@ import '../models/api_models.dart';
 import '../models/partner_school.dart';
 import '../services/api_error.dart';
 import '../services/school_service.dart';
+import '../services/web_booklist_service.dart';
 
 enum SchoolsStatus { idle, loading, success, error }
 
@@ -20,6 +21,7 @@ final class SchoolsProvider extends ChangeNotifier {
   List<PartnerSchool> get schools => List.unmodifiable(_schools);
 
   final Map<int, SchoolBooklist> _booklists = {};
+  final Map<int, WebSchool> _webSchools = {};
 
   // ---- current "Find my booklist" selection (shared by Home and Schools) ----
   PartnerSchool? _selectedSchool;
@@ -76,6 +78,28 @@ final class SchoolsProvider extends ChangeNotifier {
       _errorMessage = 'Failed to load schools.';
     }
     if (_schools.isEmpty) {
+      // The JSON API may require auth: read the public website instead.
+      try {
+        final web = await WebBooklistService.instance.fetchSchools();
+        _webSchools.clear();
+        _schools = [
+          for (var i = 0; i < web.length; i++)
+            () {
+              final id = -(i + 1); // negative id marks a website-sourced school
+              _webSchools[id] = web[i];
+              return PartnerSchool(
+                name: web[i].name,
+                code: web[i].slug,
+                location: '',
+                studentCount: 0,
+                apiId: id,
+              );
+            }(),
+        ];
+        if (_schools.isNotEmpty) _errorMessage = null;
+      } catch (_) {}
+    }
+    if (_schools.isEmpty) {
       _schools = List<PartnerSchool>.from(sampleSchools);
     }
     _status = SchoolsStatus.success;
@@ -94,7 +118,10 @@ final class SchoolsProvider extends ChangeNotifier {
     _failedBooklists.remove(apiId);
     notifyListeners();
     try {
-      final booklist = await SchoolService.instance.fetchBooklist(apiId);
+      final web = _webSchools[apiId];
+      final booklist = web != null
+          ? await WebBooklistService.instance.fetchBooklist(web, apiId)
+          : await SchoolService.instance.fetchBooklist(apiId);
       _booklists[apiId] = booklist;
       _loadingBooklists.remove(apiId);
       notifyListeners();
@@ -117,6 +144,7 @@ final class SchoolsProvider extends ChangeNotifier {
     _status = SchoolsStatus.idle;
     _schools = [];
     _booklists.clear();
+    _webSchools.clear();
     _selectedSchool = null;
     _selectedGradeId = null;
     _loadingBooklists.clear();
