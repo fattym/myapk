@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_error.dart';
 import 'privacy_policy_screen.dart';
@@ -19,6 +20,7 @@ class _AccountScreenState extends State<AccountScreen> {
   final _password = TextEditingController();
   final _confirm = TextEditingController();
   bool _register = false;
+  bool _showPassword = false;
   bool _busy = false;
   String? _error;
 
@@ -56,10 +58,17 @@ class _AccountScreenState extends State<AccountScreen> {
       }
       if (mounted) Navigator.of(context).maybePop();
     } on ApiError catch (e) {
-      if (mounted) setState(() => _error = e.message);
+      final fields = <String>[
+        for (final v in (e.errors ?? const {}).values)
+          if (v is List) ...v.map((x) => x.toString()) else v.toString(),
+      ];
+      if (mounted) {
+        setState(() => _error = fields.isNotEmpty ? fields.join('\n') : e.message);
+      }
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'Something went wrong. Please try again.');
+        setState(() => _error =
+            'Could not reach MyBidhaa. Check your connection and try again.');
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -127,21 +136,47 @@ class _AccountScreenState extends State<AccountScreen> {
               TextFormField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [AutofillHints.email],
+                  textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(labelText: 'Email'),
                   validator: (v) => (v == null || !v.contains('@'))
                       ? 'Enter a valid email'
                       : null),
               TextFormField(
                   controller: _password,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
+                  obscureText: !_showPassword,
+                  autofillHints: [
+                    _register
+                        ? AutofillHints.newPassword
+                        : AutofillHints.password
+                  ],
+                  textInputAction: _register
+                      ? TextInputAction.next
+                      : TextInputAction.done,
+                  onFieldSubmitted: (_) {
+                    if (!_register && !_busy) _submit();
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    suffixIcon: IconButton(
+                      icon: Icon(_showPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => _showPassword = !_showPassword),
+                    ),
+                  ),
                   validator: (v) => (v == null || v.length < 6)
                       ? 'At least 6 characters'
                       : null),
               if (_register)
                 TextFormField(
                     controller: _confirm,
-                    obscureText: true,
+                    obscureText: !_showPassword,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) {
+                      if (!_busy) _submit();
+                    },
                     decoration:
                         const InputDecoration(labelText: 'Confirm password'),
                     validator: (v) =>
@@ -163,6 +198,13 @@ class _AccountScreenState extends State<AccountScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2))
                     : Text(_register ? 'Create account' : 'Log in'),
               ),
+              if (!_register)
+                TextButton(
+                  onPressed: () => launchUrl(
+                      Uri.parse('https://mybidhaa.com/password/reset'),
+                      mode: LaunchMode.externalApplication),
+                  child: const Text('Forgot password?'),
+                ),
               TextButton(
                 onPressed: () => setState(() {
                   _register = !_register;

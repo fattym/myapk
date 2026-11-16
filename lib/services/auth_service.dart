@@ -23,6 +23,9 @@ final class AuthService extends BaseService {
       final result = AuthResult.fromJson(
         Map<String, dynamic>.from(resp.data as Map),
       );
+      if (result.token.isEmpty) {
+        throw ApiError(message: 'Sign-in failed. Please try again.');
+      }
       await ApiClient.writeToken(result.token);
       return result;
     } on DioException catch (e) {
@@ -51,6 +54,9 @@ final class AuthService extends BaseService {
       final result = AuthResult.fromJson(
         Map<String, dynamic>.from(resp.data as Map),
       );
+      if (result.token.isEmpty) {
+        throw ApiError(message: 'Sign-in failed. Please try again.');
+      }
       await ApiClient.writeToken(result.token);
       return result;
     } on DioException catch (e) {

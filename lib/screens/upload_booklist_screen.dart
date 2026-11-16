@@ -66,8 +66,10 @@ class _UploadBooklistScreenState extends State<UploadBooklistScreen> {
     try {
       await SharePlus.instance.share(ShareParams(
         text: note.isEmpty
-            ? 'MyBidhaa booklist. Please quote the books and prices.'
-            : 'MyBidhaa booklist: $note\nPlease quote the books and prices.',
+            ? 'MyBidhaa booklist. Please quote the books and prices. '
+                '(Send to WhatsApp +254 797 100 500)'
+            : 'MyBidhaa booklist: $note\nPlease quote the books and prices. '
+                '(Send to WhatsApp +254 797 100 500)',
         files: [XFile(path)],
       ));
     } catch (_) {
@@ -157,7 +159,7 @@ class _UploadBooklistScreenState extends State<UploadBooklistScreen> {
           ElevatedButton.icon(
             onPressed: _path == null ? null : _send,
             icon: const Icon(Icons.chat_outlined),
-            label: const Text('Send on WhatsApp'),
+            label: const Text('Send to MyBidhaa WhatsApp (+254 797 100 500)'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF147A3F),
               foregroundColor: Colors.white,

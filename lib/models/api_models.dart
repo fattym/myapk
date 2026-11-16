@@ -57,15 +57,20 @@ final class AuthResult {
   final int? expiresIn;
   final UserProfile user;
 
-  factory AuthResult.fromJson(Map<String, dynamic> json) {
-    final userMap = json['customer'] ?? json['user'] ?? {};
+  factory AuthResult.fromJson(Map<String, dynamic> raw) {
+    // Tolerate both flat and { data: {...} } responses.
+    final json = raw['data'] is Map
+        ? <String, dynamic>{...raw, ...Map<String, dynamic>.from(raw['data'] as Map)}
+        : raw;
+    final userRaw = json['customer'] ?? json['user'];
+    final userMap = userRaw is Map
+        ? Map<String, dynamic>.from(userRaw)
+        : <String, dynamic>{};
     return AuthResult(
-      token: (json['token'] ?? json['access_token'] ?? '') as String,
-      tokenType: (json['token_type'] ?? 'Bearer') as String,
-      expiresIn: json['expires_in'] as int?,
-      user: UserProfile.fromJson(
-        Map<String, dynamic>.from(userMap as Map),
-      ),
+      token: (json['token'] ?? json['access_token'] ?? '').toString(),
+      tokenType: (json['token_type'] ?? 'Bearer').toString(),
+      expiresIn: int.tryParse('${json['expires_in'] ?? ''}'),
+      user: UserProfile.fromJson(userMap),
     );
   }
 }
@@ -87,11 +92,11 @@ final class UserProfile {
   final String? createdAt;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
-        id: json['id'] as int? ?? 0,
-        name: (json['name'] ?? '') as String,
-        email: (json['email'] ?? '') as String,
-        phone: json['phone'] as String?,
-        createdAt: json['created_at'] as String?,
+        id: int.tryParse('${json['id'] ?? ''}') ?? 0,
+        name: (json['name'] ?? '').toString(),
+        email: (json['email'] ?? '').toString(),
+        phone: json['phone']?.toString(),
+        createdAt: json['created_at']?.toString(),
       );
 
   Map<String, dynamic> toJson() {
