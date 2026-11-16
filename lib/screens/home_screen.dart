@@ -287,12 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  mainAxisExtent: ProductCard.gridExtent(featured),
-                ),
+                gridDelegate: ProductCard.gridDelegate(context, featured),
                 itemCount: featured.length,
                 itemBuilder: (context, i) => ProductCard(product: featured[i]),
               ),

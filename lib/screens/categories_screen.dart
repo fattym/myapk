@@ -54,10 +54,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ? const Center(child: Text('No categories found'))
                 : GridView.builder(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisExtent: 132,
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 220,
+                      mainAxisExtent: 132 *
+                          (0.6 +
+                              0.4 *
+                                  MediaQuery.textScalerOf(context)
+                                      .scale(1.0)
+                                      .clamp(1.0, 1.4)),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),

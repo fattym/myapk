@@ -97,12 +97,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       body = GridView.builder(
         controller: _scroll,
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisExtent: ProductCard.gridExtent(products),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
+        gridDelegate: ProductCard.gridDelegate(context, products),
         itemCount: products.length + (catalog.loadingMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= products.length) {

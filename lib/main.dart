@@ -31,6 +31,17 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'MyBidhaa',
         theme: AppTheme.lightTheme,
+        builder: (context, child) {
+          // Keep layouts intact for very large system font sizes.
+          final mq = MediaQuery.of(context);
+          return MediaQuery(
+            data: mq.copyWith(
+              textScaler: mq.textScaler.clamp(
+                  minScaleFactor: 0.9, maxScaleFactor: 1.4),
+            ),
+            child: child!,
+          );
+        },
         home: const _StartGate(),
         debugShowCheckedModeBanner: false,
       ),

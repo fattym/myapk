@@ -13,6 +13,19 @@ class ProductCard extends StatefulWidget {
     return 262 + (hasToggle ? 44 : 0);
   }
 
+  /// Adaptive grid: 2 columns on phones, more on tablets / landscape, with the
+  /// cell height growing with the user's text size.
+  static SliverGridDelegate gridDelegate(
+      BuildContext context, Iterable<Product> products) {
+    final scale = MediaQuery.textScalerOf(context).scale(1.0).clamp(1.0, 1.4);
+    return SliverGridDelegateWithMaxCrossAxisExtent(
+      maxCrossAxisExtent: 200,
+      mainAxisExtent: gridExtent(products) * (0.6 + 0.4 * scale),
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+    );
+  }
+
   final Product product;
   final bool showConditionToggle;
   final Function(Product)? onAddToCart;
