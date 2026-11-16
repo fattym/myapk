@@ -64,7 +64,10 @@ class _UploadBooklistScreenState extends State<UploadBooklistScreen> {
     if (path == null) return;
     final note = _note.text.trim();
     try {
-      await SharePlus.instance.share(ShareParams(
+      final box = context.findRenderObject() as RenderBox?;
+    await SharePlus.instance.share(ShareParams(
+      // iPad needs an anchor for the share popover.
+      sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
         text: note.isEmpty
             ? 'MyBidhaa booklist. Please quote the books and prices. '
                 '(Send to WhatsApp +254 797 100 500)'

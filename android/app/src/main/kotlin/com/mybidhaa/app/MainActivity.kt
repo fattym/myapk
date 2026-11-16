@@ -1,4 +1,4 @@
-package com.example.mybidhaa
+package com.mybidhaa.app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -8,11 +8,13 @@ import 'providers/schools_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/main_shell_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'services/update_service.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
+  UpdateService.check(); // Play in-app update prompt (Android)
 }
 
 class MyApp extends StatelessWidget {

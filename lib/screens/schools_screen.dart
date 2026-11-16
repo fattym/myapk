@@ -506,8 +506,9 @@ class _SchoolSearchList extends StatelessWidget {
     final q = query.trim().toLowerCase();
     final matches = schools.schools
         .where((s) => q.isEmpty || s.name.toLowerCase().contains(q))
-        .toList();
-    final list = matches.take(60).toList();
+        .toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    final list = matches; // show every school (A-Z), not just the first 60
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

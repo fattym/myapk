@@ -168,7 +168,10 @@ class _ScanBooklistScreenState extends State<ScanBooklistScreen> {
   Future<void> _sendPhoto() async {
     final file = _image;
     if (file == null) return;
+    final box = context.findRenderObject() as RenderBox?;
     await SharePlus.instance.share(ShareParams(
+      // iPad needs an anchor for the share popover.
+      sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
       text: 'MyBidhaa booklist photo. Please quote the books and prices. '
           '(Send to WhatsApp +254 797 100 500)',
       files: [XFile(file.path)],
