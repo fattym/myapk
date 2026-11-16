@@ -496,10 +496,10 @@ final class CartItem {
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
         id: json['id'] as int? ?? 0,
         name: (json['name'] ?? '') as String,
-        qty: json['qty'] as int? ?? 1,
+        qty: (json['qty'] ?? json['quantity']) as int? ?? 1,
         price: _toDouble(json['price']),
         options: json['options'] as Map<String, dynamic>?,
-        rowId: json['rowId'] as String?,
+        rowId: (json['rowId'] ?? json['row_id']) as String?,
       );
 }
 
@@ -512,8 +512,12 @@ final class CartResponse {
     this.items,
     required this.message,
     this.cartId,
+    this.couponDiscount = 0,
+    this.appliedCouponCode,
   });
 
+  final double couponDiscount;
+  final String? appliedCouponCode;
   final bool error;
   final int? count;
   final String? totalPrice;
@@ -522,10 +526,17 @@ final class CartResponse {
   final String? cartId;
 
   factory CartResponse.fromJson(Map<String, dynamic> json) {
-    final itemsList = json['cart_items'] as List?
-        ?? (json['data'] is Map ? ((json['data'] as Map)['items'] as List?) : null)
-        ?? const [];
+    final rawItems = json['cart_items'] ??
+        json['content'] ??
+        (json['data'] is Map ? (json['data'] as Map)['items'] : null);
+    final List itemsList = rawItems is List
+        ? rawItems
+        : rawItems is Map
+            ? rawItems.values.toList()
+            : const [];
     return CartResponse(
+      couponDiscount: _toDouble(json['coupon_discount_amount']),
+      appliedCouponCode: json['applied_coupon_code']?.toString(),
       error: json['error'] as bool? ?? false,
       count: json['count'] as int? ?? (json['data'] is Map ? (json['data'] as Map)['count'] as int? : null),
       totalPrice: (json['order_total_formatted'] ?? json['raw_total_formatted'] ?? (json['data'] is Map ? (json['data'] as Map)['total_price'] : null))?.toString(),

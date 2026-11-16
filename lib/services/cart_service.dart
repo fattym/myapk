@@ -83,11 +83,22 @@ final class CartService extends BaseService {
     }
   }
 
+  /// Rebuilds the server cart from the local cart (the coupon API only works
+  /// against a server cart) and returns the last response.
+  Future<CartResponse?> syncCart(List<({int productId, int qty})> lines) async {
+    _cartId = '0';
+    CartResponse? last;
+    for (final l in lines) {
+      last = await addToCart(productId: l.productId, quantity: l.qty);
+    }
+    return last;
+  }
+
   Future<CouponResult> applyCoupon(String code) async {
     try {
       final resp = await dio.post(
         '/v1/ecommerce/coupon/apply',
-        data: {'coupon_code': code},
+        data: {'coupon_code': code, 'cart_id': _cartId},
       );
       return CouponResult.fromJson(
         Map<String, dynamic>.from(resp.data as Map),
@@ -99,7 +110,10 @@ final class CartService extends BaseService {
 
   Future<CouponResult> removeCoupon() async {
     try {
-      final resp = await dio.post('/v1/ecommerce/coupon/remove');
+      final resp = await dio.post(
+        '/v1/ecommerce/coupon/remove',
+        data: {'cart_id': _cartId},
+      );
       return CouponResult.fromJson(
         Map<String, dynamic>.from(resp.data as Map),
       );

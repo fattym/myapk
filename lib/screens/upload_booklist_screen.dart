@@ -29,13 +29,15 @@ class _UploadBooklistScreenState extends State<UploadBooklistScreen> {
   Future<void> _photo(ImageSource source) async {
     try {
       final f = await _picker.pickImage(source: source, imageQuality: 90);
-      if (f != null) setState(() {
-        _path = f.path;
-        _name = f.name;
-        _error = null;
-      });
-    } catch (_) {
-      setState(() => _error = 'Could not open the camera or gallery.');
+      if (f != null) {
+        setState(() {
+          _path = f.path;
+          _name = f.name;
+          _error = null;
+        });
+      }
+    } catch (e) {
+      setState(() => _error = 'Could not open the camera or gallery: $e');
     }
   }
 

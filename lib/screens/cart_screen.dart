@@ -475,7 +475,15 @@ class CartScreen extends StatelessWidget {
               '-${formatKES(cart.chamaSavings)}',
               isNegative: true,
             ),
+          if (cart.couponCode != null)
+            _buildSummaryRow(
+              'Promo (${cart.couponCode})',
+              '-${formatKES(cart.couponDiscount)}',
+              isNegative: true,
+            ),
           _buildSummaryRow('Delivery Fee', formatKES(cart.deliveryFee)),
+          const SizedBox(height: 8),
+          const _PromoCodeField(),
           const SizedBox(height: 8),
           const Divider(),
           const SizedBox(height: 8),
@@ -674,5 +682,75 @@ class CartScreen extends StatelessWidget {
     final encoded = Uri.encodeComponent(buffer.toString());
     final url = 'https://wa.me/254797100500?text=$encoded';
     await launchUrl(Uri.parse(url));
+  }
+}
+
+
+class _PromoCodeField extends StatefulWidget {
+  const _PromoCodeField();
+
+  @override
+  State<_PromoCodeField> createState() => _PromoCodeFieldState();
+}
+
+class _PromoCodeFieldState extends State<_PromoCodeField> {
+  final _controller = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _apply(CartProvider cart) async {
+    final err = await cart.applyCoupon(_controller.text);
+    if (!mounted) return;
+    setState(() => _error = err);
+    if (err == null) _controller.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cart = context.watch<CartProvider>();
+    if (cart.couponCode != null) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: cart.removeCoupon,
+          icon: const Icon(Icons.close, size: 16),
+          label: Text('Remove promo ${cart.couponCode}'),
+        ),
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _controller,
+            textCapitalization: TextCapitalization.characters,
+            onSubmitted: (_) => _apply(cart),
+            decoration: InputDecoration(
+              isDense: true,
+              hintText: 'Promo code',
+              errorText: _error,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        FilledButton(
+          onPressed: cart.couponBusy ? null : () => _apply(cart),
+          child: cart.couponBusy
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Apply'),
+        ),
+      ],
+    );
   }
 }

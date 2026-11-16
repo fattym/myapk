@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import '../models/cart_item.dart';
 import '../models/product.dart';
 import '../models/delivery_type.dart';
+import '../services/api_error.dart';
+import '../services/cart_service.dart';
 
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
   bool _useChamaDiscount = false;
+  String? _couponCode;
+  double _couponDiscount = 0;
+  bool _couponBusy = false;
   DeliveryType _deliveryType = DeliveryType.doorstep;
 
   List<CartItem> get items => List.unmodifiable(_items);
@@ -22,7 +27,55 @@ class CartProvider extends ChangeNotifier {
   double get chamaSavings =>
       _useChamaDiscount ? (subtotal * chamaDiscountPercent) : 0.0;
 
-  double get discountedSubtotal => subtotal - chamaSavings;
+  String? get couponCode => _couponCode;
+  double get couponDiscount => _couponDiscount;
+  bool get couponBusy => _couponBusy;
+
+  double get discountedSubtotal =>
+      (subtotal - chamaSavings - _couponDiscount).clamp(0.0, double.infinity);
+
+  /// Returns null on success, otherwise an error message.
+  Future<String?> applyCoupon(String code) async {
+    code = code.trim();
+    if (code.isEmpty) return 'Enter a promo code';
+    if (_items.isEmpty) return 'Your cart is empty';
+    _couponBusy = true;
+    notifyListeners();
+    try {
+      final svc = CartService.instance;
+      await svc.syncCart([
+        for (final i in _items) (productId: i.product.id, qty: i.quantity),
+      ]);
+      final res = await svc.applyCoupon(code);
+      if (res.error) {
+        return res.message ?? 'This promo code is invalid or expired';
+      }
+      final cart = await svc.getCart();
+      _couponCode = cart.appliedCouponCode ?? code;
+      _couponDiscount = cart.couponDiscount;
+      return null;
+    } on ApiError catch (e) {
+      return e.message;
+    } catch (_) {
+      return 'Could not apply the promo code. Please try again.';
+    } finally {
+      _couponBusy = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> removeCoupon() async {
+    try {
+      await CartService.instance.removeCoupon();
+    } catch (_) {}
+    _resetCoupon();
+    notifyListeners();
+  }
+
+  void _resetCoupon() {
+    _couponCode = null;
+    _couponDiscount = 0;
+  }
 
   double get deliveryFeeRaw {
     switch (_deliveryType) {
@@ -53,6 +106,7 @@ class CartProvider extends ChangeNotifier {
   double get termPayment => remainingAfterDeposit / 2;
 
   void addItem(Product product, {bool isPreowned = false, int quantity = 1}) {
+    _resetCoupon();
     final existingIndex = _items.indexWhere(
       (item) =>
           item.product.id == product.id && item.isPreowned == isPreowned,
@@ -77,6 +131,7 @@ class CartProvider extends ChangeNotifier {
   }
 
   void incrementQuantity(int index) {
+    _resetCoupon();
     if (index < 0 || index >= _items.length) return;
     final item = _items[index];
     _items[index] = item.copyWith(quantity: item.quantity + 1);
@@ -84,6 +139,7 @@ class CartProvider extends ChangeNotifier {
   }
 
   void decrementQuantity(int index) {
+    _resetCoupon();
     if (index < 0 || index >= _items.length) return;
     final item = _items[index];
     if (item.quantity > 1) {
@@ -95,17 +151,20 @@ class CartProvider extends ChangeNotifier {
   }
 
   void removeItem(int index) {
+    _resetCoupon();
     if (index < 0 || index >= _items.length) return;
     _items.removeAt(index);
     notifyListeners();
   }
 
   void clearCart() {
+    _resetCoupon();
     _items.clear();
     notifyListeners();
   }
 
   void setItemCondition(int index, bool isPreowned) {
+    _resetCoupon();
     if (index < 0 || index >= _items.length) return;
     final item = _items[index];
     final price = isPreowned

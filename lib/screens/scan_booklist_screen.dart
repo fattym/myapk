@@ -78,6 +78,11 @@ class _ScanBooklistScreenState extends State<ScanBooklistScreen> {
     }
   }
 
+  static String _short(Object e) {
+    final t = e.toString().replaceAll('\n', ' ');
+    return t.length > 140 ? '${t.substring(0, 140)}...' : t;
+  }
+
   Future<void> _pick(ImageSource source) async {
     if (kIsWeb) {
       setState(() => _error =
@@ -92,7 +97,7 @@ class _ScanBooklistScreenState extends State<ScanBooklistScreen> {
         maxWidth: 2400,
       );
     } catch (e) {
-      setState(() => _error = 'Could not open the camera or gallery.');
+      setState(() => _error = 'Could not open the camera or gallery: ${_short(e)}');
       return;
     }
     if (file == null) return;
@@ -135,7 +140,7 @@ class _ScanBooklistScreenState extends State<ScanBooklistScreen> {
       if (!mounted) return;
       setState(() {
         _working = false;
-        _error = 'Scanning failed. Please try again.';
+        _error = 'Scanning failed: ${_short(e)}';
       });
     } finally {
       await recognizer.close();
