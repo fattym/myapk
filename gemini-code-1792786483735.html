@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Learning Park – Kenya's CBC Learning Store & Booklist Fulfillment</title>
+<meta name="description" content="Every book and supply your learner needs, for every CBC grade. Delivered to schools and homes across Kenya.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064.0%2064%22%20role=%22img%22%20aria-label=%22Learning%20Park%22%3E%3Crect%20width=%2264%22%20height=%2264%22%20rx=%2214%22%20fill=%22%230F172A%22/%3E%3Crect%20x=%2218.5%22%20y=%220%22%20width=%223.2%22%20height=%2264%22%20fill=%22%23E53900%22/%3E%3Cpath%20d=%22M27.5%2027.5l6%206L47.5%2015%22%20fill=%22none%22%20stroke=%22%23FFFFFF%22%20stroke-width=%225.4%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --coral: #E53900;
+  --navy: #0F172A;
+  --white: #FFFFFF;
+  --gray: #F8FAFC;
+  --charcoal: #1E293B;
+  --muted: #64748B;
+  --rule: #E2E8F0;
+  --whatsapp: #25D366;
+  --gold: #FDB813;
+  --radius: 12px;
+  --font-head: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
+  --wrap: 1200px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--white); color: var(--charcoal);
+  font: 400 1rem/1.5 var(--font-body);
+  -webkit-tap-highlight-color: transparent;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4 { font-family: var(--font-head); color: var(--navy); line-height: 1.15; margin: 0; letter-spacing: -.02em; }
+p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; border-radius: 4px; }
+.wrap { width: min(100% - 1.5rem, var(--wrap)); margin-inline: auto; }
+
+/* Buttons */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  width: 100%; min-height: 3.2rem; padding: .75rem 1.25rem; border-radius: 999px; border: 2px solid var(--coral);
+  background: var(--coral); color: var(--white); font: 700 1rem/1 var(--font-body); cursor: pointer;
+  text-align: center; box-shadow: 0 4px 12px rgba(229, 57, 0, 0.2);
+  transition: background-color .2s, border-color .2s;
+}
+.btn:active { transform: scale(0.98); }
+.btn--ghost { background: transparent; color: var(--white); border-color: rgba(255,255,255,0.4); box-shadow: none; }
+.btn--ghost:hover, .btn--ghost:active { background: rgba(255,255,255,0.15); }
+.btn--wa { background: var(--whatsapp); border-color: var(--whatsapp); color: var(--white); box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2); }
+.btn--gold { background: var(--gold); border-color: var(--gold); color: var(--navy); font-weight: 800; box-shadow: 0 4px 12px rgba(253, 184, 19, 0.3); }
+
+@media (min-width: 768px) {
+  .btn { width: auto; min-height: 2.8rem; padding: .6rem 1.5rem; font-size: 0.95rem; }
+  .wrap { width: min(100% - 2.5rem, var(--wrap)); }
+}
+
+/* Top Announcement Bar */
+.topbar { background: var(--coral); color: var(--white); font-size: 0.82rem; font-weight: 500; text-align: center; }
+.topbar .wrap { display: flex; justify-content: center; align-items: center; gap: 1rem; padding-block: .45rem; }
+.topbar ul { display: none; }
+@media (min-width: 768px) {
+  .topbar { font-size: 0.9rem; }
+  .topbar .wrap { justify-content: space-between; }
+  .topbar ul { display: flex; gap: 1.25rem; }
+}
+
+/* Header & Mobile Menu */
+.header { background: var(--white); position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--rule); }
+.header__top { display: flex; align-items: center; justify-content: space-between; padding-block: .8rem; gap: .75rem; }
+.logo { display: flex; align-items: center; gap: .5rem; font-family: var(--font-head); font-weight: 800; font-size: 1.35rem; color: var(--navy); }
+.logo span { color: var(--coral); }
+.header-actions { display: flex; align-items: center; gap: .5rem; }
+.mobile-menu-btn { background: var(--gray); border: 1px solid var(--rule); border-radius: 999px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.cart { display: inline-flex; align-items: center; gap: .4rem; font-weight: 700; color: var(--navy); background: var(--gray); padding: .5rem .85rem; border-radius: 999px; border: 1px solid var(--rule); font-size: .9rem; }
+.cart span { background: var(--coral); color: var(--white); padding: .05rem .45rem; border-radius: 999px; font-size: .8rem; }
+
+/* Desktop Search */
+.search { display: none; border: 2px solid var(--navy); border-radius: 999px; overflow: hidden; max-width: 380px; width: 100%; }
+.search input { border: 0; padding: .5rem 1rem; font: inherit; width: 100%; min-width: 0; background: var(--white); color: var(--charcoal); }
+.search button { border: 0; background: var(--coral); color: var(--white); padding: 0 1rem; cursor: pointer; font-weight: 700; }
+@media (min-width: 900px) {
+  .search { display: flex; }
+  .mobile-menu-btn { display: none; }
+}
+
+/* Navigation Drawer */
+.nav { background: var(--navy); display: none; }
+.nav.is-open { display: block; position: absolute; top: 100%; left: 0; width: 100%; box-shadow: 0 10px 20px rgba(0,0,0,0.15); max-height: 80vh; overflow-y: auto; }
+.nav ul { display: flex; flex-direction: column; padding: 1rem; gap: .5rem; }
+.nav a { display: block; padding: .75rem 1rem; border-radius: 8px; font-weight: 600; color: var(--white); font-size: 1rem; cursor: pointer; }
+.nav a:hover, .nav a.active { background: var(--coral); }
+@media (min-width: 900px) {
+  .nav { display: block; position: static; box-shadow: none; }
+  .nav ul { flex-direction: row; justify-content: center; gap: .5rem; padding-block: .5rem; flex-wrap: wrap; }
+  .nav a { border-radius: 999px; white-space: nowrap; padding: .5rem 1rem; font-size: .95rem; }
+}
+
+.view-section { display: none; }
+.view-section.active { display: block; }
+
+/* ================= EXACT HERO SECTION MATCHING IMAGE ================= */
+.hero {
+  position: relative;
+  background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.82)), url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=1600') center/cover no-repeat;
+  color: var(--white);
+  padding: 5rem 0 4rem;
+  text-align: center;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.35rem 1rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; margin-bottom: 1.5rem;
+}
+.hero h1 {
+  font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 800; color: var(--white); max-width: 24ch; margin-inline: auto; line-height: 1.1;
+}
+.hero p.lead {
+  margin-top: 1.25rem; font-size: clamp(1rem, 2vw, 1.125rem); color: rgba(255, 255, 255, 0.9); max-width: 60ch; margin-inline: auto;
+}
+.hero-cta-group {
+  margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; justify-content: center; max-width: 480px; margin-inline: auto;
+}
+.grade-pills-row {
+  margin-top: 2.5rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; max-width: 800px; margin-inline: auto;
+}
+.grade-pill {
+  background: transparent; border: 1px solid rgba(255, 255, 255, 0.35); color: var(--white);
+  padding: 0.45rem 1.1rem; border-radius: 999px; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background 0.2s;
+}
+.grade-pill:hover { background: rgba(255, 255, 255, 0.2); }
+
+@media (min-width: 640px) {
+  .hero-cta-group { flex-direction: row; max-width: none; }
+  .hero { padding: 7rem 0 5rem; }
+}
+
+/* ================= 1. SHOP BY LEVEL (CBC STRUCTURE) ================= */
+.cbc-levels { padding: 4rem 0; background: var(--gray); }
+.section-kicker { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.4rem; }
+.section-header-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+.section-title { font-size: 2rem; font-weight: 800; color: var(--navy); }
+.btn-text-link { font-size: 0.9rem; font-weight: 700; color: var(--navy); background: var(--white); border: 1px solid var(--rule); padding: 0.5rem 1.2rem; border-radius: 999px; transition: background 0.2s; }
+.btn-text-link:hover { background: var(--rule); }
+
+.cbc-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+.cbc-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--rule); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; cursor: pointer; }
+.cbc-card:hover { transform: translateY(-4px); }
+.cbc-card-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #e2e8f0; }
+.cbc-card-body { padding: 1.25rem; }
+.cbc-card-title { font-size: 1.15rem; font-weight: 800; color: var(--navy); margin-bottom: 0.25rem; }
+.cbc-card-sub { font-size: 0.85rem; color: var(--muted); }
+
+@media (min-width: 640px) { .cbc-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .cbc-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* ================= 2. BESTSELLERS ================= */
+.bestsellers { padding: 4rem 0; background: var(--white); }
+.product-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+.product-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--rule); padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+.wishlist-btn { position: absolute; top: 1.25rem; right: 1.25rem; width: 32px; height: 32px; border-radius: 50%; background: var(--white); border: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; z-index: 2; }
+.badge-stack { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.5rem; }
+.tag-badge { font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; width: fit-content; text-transform: uppercase; }
+.tag-badge--grade { background: #E2E8F0; color: var(--navy); }
+.tag-badge--save { background: var(--gold); color: var(--navy); }
+
+.product-thumb { width: 100%; aspect-ratio: 3/4; object-fit: contain; margin-bottom: 0.75rem; background: #F1F5F9; border-radius: 8px; padding: 0.5rem; }
+.product-category { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.25rem; }
+.product-title { font-size: 0.95rem; font-weight: 700; color: var(--navy); margin-bottom: 0.25rem; line-height: 1.3; }
+.product-publisher { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.75rem; }
+.price-row { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem; }
+.current-price { font-family: var(--font-head); font-weight: 800; font-size: 1.15rem; color: var(--navy); }
+.old-price { font-size: 0.85rem; color: var(--muted); text-decoration: line-through; }
+
+.action-row { display: flex; gap: 0.5rem; }
+.btn-add-cart { flex: 1; background: var(--navy); color: var(--white); border: none; padding: 0.6rem 0.8rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+.btn-add-cart:hover { background: var(--coral); }
+.btn-wa-icon { width: 36px; height: 36px; background: #DCFCE7; color: var(--whatsapp); border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid #BBF7D0; }
+
+@media (min-width: 640px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* ================= 3. BULK SCHOOL ORDERS ================= */
+.bulk-orders { padding: 4rem 0; background: var(--white); }
+.bulk-card { background: var(--navy); color: var(--white); border-radius: 16px; padding: 2.5rem 1.5rem; display: grid; grid-template-columns: 1fr; gap: 2.5rem; position: relative; overflow: hidden; }
+.bulk-pill { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.15); color: var(--white); font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.8rem; border-radius: 999px; margin-bottom: 1rem; text-transform: uppercase; width: fit-content; }
+.bulk-title { font-size: clamp(2rem, 4vw, 2.8rem); color: var(--white); margin-bottom: 1rem; }
+.bulk-desc { color: rgba(255,255,255,0.8); font-size: 1.05rem; margin-bottom: 2rem; max-width: 45ch; }
+.bulk-buttons { display: flex; flex-wrap: wrap; gap: 1rem; }
+
+.bulk-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: center; z-index: 2; }
+.stat-box { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 1.25rem 0.75rem; text-align: center; }
+.stat-number { font-family: var(--font-head); font-size: 1.8rem; font-weight: 800; color: var(--white); }
+.stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.7); font-weight: 500; margin-top: 0.25rem; }
+
+@media (min-width: 900px) {
+  .bulk-card { grid-template-columns: 1.2fr 0.8fr; padding: 3.5rem; align-items: center; }
+}
+
+/* ================= 4. TRUSTED PUBLISHERS ================= */
+.publishers { padding: 3rem 0; background: var(--gray); text-align: center; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.publishers-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem 2.5rem; margin-top: 1.5rem; font-weight: 700; color: var(--muted); font-size: 0.95rem; }
+
+/* ================= 5. TESTIMONIALS ================= */
+.testimonials { padding: 4rem 0; background: var(--white); text-align: center; }
+.reviews-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 2rem; text-align: left; }
+.review-card { background: var(--gray); border-radius: var(--radius); border: 1px solid var(--rule); padding: 1.75rem; display: flex; flex-direction: column; justify-content: space-between; }
+.stars { color: #F59E0B; font-size: 1rem; margin-bottom: 1rem; letter-spacing: 2px; }
+.review-text { font-size: 0.95rem; color: var(--charcoal); margin-bottom: 1.5rem; line-height: 1.6; }
+.reviewer-profile { display: flex; align-items: center; gap: 0.75rem; }
+.reviewer-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--navy); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; }
+.reviewer-name { font-weight: 700; font-size: 0.9rem; color: var(--navy); }
+.reviewer-role { font-size: 0.8rem; color: var(--muted); }
+
+@media (min-width: 768px) { .reviews-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* ================= 6. NEWSLETTER ================= */
+.newsletter-banner { background: var(--navy); color: var(--white); padding: 3.5rem 0; }
+.newsletter-wrap { display: flex; flex-direction: column; gap: 2rem; }
+.newsletter-title { font-size: clamp(1.8rem, 3vw, 2.5rem); color: var(--white); margin-bottom: 0.75rem; }
+.newsletter-sub { color: rgba(255,255,255,0.8); font-size: 0.95rem; max-width: 50ch; }
+.newsletter-form { display: flex; gap: 0.5rem; flex-direction: column; width: 100%; max-width: 480px; }
+.newsletter-input { width: 100%; padding: 0.85rem 1.25rem; border-radius: 8px; border: none; font: inherit; font-size: 0.95rem; }
+
+@media (min-width: 900px) {
+  .newsletter-wrap { flex-direction: row; justify-content: space-between; align-items: center; }
+  .newsletter-form { flex-direction: row; }
+}
+
+/* Shop Layout / Category Views */
+.shop-layout { padding: 2rem 0; background: var(--gray); }
+.shop-container { display: flex; flex-direction: column; gap: 1.5rem; }
+.sidebar { background: var(--white); padding: 1.25rem; border-radius: var(--radius); border: 1px solid var(--rule); }
+.sidebar h3 { font-size: 1.05rem; margin-bottom: .75rem; color: var(--navy); border-bottom: 2px solid var(--rule); padding-bottom: .4rem; }
+.filter-group { margin-bottom: 1.25rem; }
+.filter-group label { display: flex; align-items: center; gap: .75rem; font-size: 0.95rem; margin-bottom: .5rem; cursor: pointer; color: var(--charcoal); }
+.filter-group input[type="checkbox"] { accent-color: var(--coral); width: 1.25rem; height: 1.25rem; }
+
+.shop-main-content { display: flex; flex-direction: column; gap: 1.25rem; }
+.shop-toolbar { background: var(--white); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--rule); display: flex; flex-direction: column; gap: .75rem; font-size: .9rem; }
+.product-grid-shop { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+.page-banner { background: var(--navy); color: var(--white); padding: 2rem 1.5rem; border-radius: var(--radius); margin-bottom: 1.5rem; }
+.page-banner h2 { color: var(--white); font-size: 1.8rem; margin-bottom: .5rem; }
+.page-banner p { color: rgba(255,255,255,0.8); font-size: .95rem; }
+
+@media (min-width: 768px) {
+  .product-grid-shop { grid-template-columns: repeat(2, 1fr); }
+  .shop-toolbar { flex-direction: row; justify-content: space-between; align-items: center; }
+}
+@media (min-width: 1024px) {
+  .shop-container { display: grid; grid-template-columns: 280px 1fr; }
+  .product-grid-shop { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* University Section */
+.uni-selector-card { background: var(--white); border: 1px solid var(--rule); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.uni-selector-card select { width: 100%; min-height: 3rem; border: 2px solid var(--navy); border-radius: 999px; padding: 0 1rem; font: 500 1rem var(--font-body); background: var(--white); color: var(--charcoal); }
+.course-requirements-box { background: var(--white); border: 1px solid var(--rule); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+.course-requirements-box h3 { font-size: 1.3rem; color: var(--navy); margin-bottom: .5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.course-requirements-box .uni-tag { background: var(--navy); color: var(--white); font-size: .75rem; padding: .25rem .75rem; border-radius: 999px; font-weight: 500; }
+.req-list { margin-top: 1rem; display: flex; flex-direction: column; gap: .75rem; }
+.req-item { display: flex; justify-content: space-between; align-items: center; padding-bottom: .75rem; border-bottom: 1px solid var(--rule); gap: 1rem; font-size: 0.95rem; }
+.req-item:last-child { border-bottom: none; }
+
+@media (min-width: 768px) {
+  .uni-selector-card { flex-direction: row; align-items: center; justify-content: space-between; }
+  .uni-selector-card select { max-width: 400px; }
+}
+
+/* Footer */
+.footer { background: var(--navy); color: var(--white); padding-block: 3rem 1.5rem; }
+.footer .cols { display: flex; flex-direction: column; gap: 2rem; }
+.footer h2 { color: var(--white); font-size: 1.1rem; margin-bottom: .75rem; }
+.footer li + li { margin-top: .5rem; }
+.footer a { color: rgba(255,255,255,0.8); font-size: .95rem; }
+.footer a:hover { color: var(--white); text-decoration: underline; }
+.footer .legal { margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: .75rem; color: rgba(255,255,255,0.6); font-size: .85rem; }
+@media (min-width: 768px) {
+  .footer .cols { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 2rem; }
+  .footer .legal { flex-direction: row; justify-content: space-between; }
+}
+
+.floating-wa { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 56px; height: 56px; background: var(--whatsapp); color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(37,211,102,0.4); z-index: 99; }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to main content</a>
+
+<!-- Top Announcement Bar -->
+<div class="topbar">
+  <div class="wrap">
+    <p>🚀 Fast delivery across Kenya | Order via WhatsApp: 0716815025</p>
+    <ul>
+      <li><a href="tel:0716815025">Call / WhatsApp: 0716 815 025</a></li>
+      <li><a href="#" onclick="switchView('home')">Home</a></li>
+      <li><a href="#" onclick="switchView('university')">University Portal</a></li>
+    </ul>
+  </div>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="wrap header__top">
+    <a class="logo" href="#" onclick="switchView('home')">
+      <svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0F172A"/><rect x="18.5" y="0" width="3.2" height="64" fill="#E53900"/><path d="M27.5 27.5l6 6L47.5 15" fill="none" stroke="#FFFFFF" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Learning<span>Park</span>
+    </a>
+    <form class="search" role="search" onsubmit="event.preventDefault(); switchView('shop');">
+      <input type="search" placeholder="Search CBC books, grade 1-9..." aria-label="Search">
+      <button type="submit">Search</button>
+    </form>
+    <div class="header-actions">
+      <a class="cart" href="#">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span>1</span>
+      </a>
+      <button class="mobile-menu-btn" id="menuToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="nav" id="mainNav" aria-label="Main Navigation">
+    <div class="wrap">
+      <ul>
+        <li><a href="#" class="nav-link active" onclick="switchView('home'); closeMenu();">Home</a></li>
+        <li><a href="#" class="nav-link" onclick="switchView('shop'); closeMenu();">CBC Books</a></li>
+        <li><a href="#" class="nav-link" onclick="switchView('stationery'); closeMenu();">Stationery</a></li>
+        <li><a href="#" class="nav-link" onclick="switchView('art-kits'); closeMenu();">Art & Practical</a></li>
+        <li><a href="#" class="nav-link" onclick="switchView('ecde-toys'); closeMenu();">ECDE & Toys</a></li>
+        <li><a href="#" class="nav-link" onclick="switchView('reference'); closeMenu();">Reference & Set Books</a></li>
+        <li><a href="#" class="nav-link" onclick="switchView('university'); closeMenu();" style="color: #FDB813;">🎓 University Courses</a></li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- ================= VIEW 1: HOME LANDING ================= -->
+  <div id="home-view" class="view-section active">
+    <!-- Exact Matching Library Hero Section -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-badge">⭐ Kenya's CBC Learning Store</div>
+        <h1>Every book and supply your learner needs, for every CBC grade</h1>
+        <p class="lead">CBC approved textbooks, set books, stationery and learning materials — ordered online and delivered to schools, shops and homes across Kenya.</p>
+        <div class="hero-cta-group">
+          <a class="btn btn--gold" href="#" onclick="switchView('shop')">📖 Shop CBC Books</a>
+          <a class="btn btn--ghost" href="#cbc-levels-section">☰ Browse by Grade</a>
+        </div>
+        <div class="grade-pills-row">
+          <button class="grade-pill" onclick="switchView('shop')">Pre-Primary</button>
+          <button class="grade-pill" onclick="switchView('shop')">Grade 1–6</button>
+          <button class="grade-pill" onclick="switchView('shop')">Grade 7–9</button>
+          <button class="grade-pill" onclick="switchView('shop')">Grade 10–12</button>
+          <button class="grade-pill" onclick="switchView('shop')">Form 1–4</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. Shop by Level (CBC Structure) -->
+    <section class="cbc-levels" id="cbc-levels-section">
+      <div class="wrap">
+        <div class="section-kicker">Shop By Level</div>
+        <div class="section-header-flex">
+          <h2 class="section-title">Built around Kenya's CBC structure</h2>
+          <a href="#" class="btn-text-link" onclick="switchView('shop')">View all categories &rarr;</a>
+        </div>
+        <div class="cbc-grid">
+          <div class="cbc-card" onclick="switchView('shop')">
+            <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=75&w=600" alt="Pre-Primary & ECDE" class="cbc-card-img">
+            <div class="cbc-card-body">
+              <div class="cbc-card-title">Pre-Primary & ECDE</div>
+              <div class="cbc-card-sub">Playgroup · PP1 · PP2</div>
+            </div>
+          </div>
+          <div class="cbc-card" onclick="switchView('shop')">
+            <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=75&w=600" alt="CBC Primary" class="cbc-card-img">
+            <div class="cbc-card-body">
+              <div class="cbc-card-title">CBC Primary</div>
+              <div class="cbc-card-sub">Grade 1 - Grade 6</div>
+            </div>
+          </div>
+          <div class="cbc-card" onclick="switchView('shop')">
+            <img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=75&w=600" alt="CBC Junior Secondary" class="cbc-card-img">
+            <div class="cbc-card-body">
+              <div class="cbc-card-title">CBC Junior Secondary</div>
+              <div class="cbc-card-sub">Grade 7 - Grade 9</div>
+            </div>
+          </div>
+          <div class="cbc-card" onclick="switchView('shop')">
+            <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=75&w=600" alt="CBC Senior Secondary" class="cbc-card-img">
+            <div class="cbc-card-body">
+              <div class="cbc-card-title">CBC Senior Secondary</div>
+              <div class="cbc-card-sub">Grade 10 - Grade 12</div>
+            </div>
+          </div>
+          <div class="cbc-card" onclick="switchView('shop')">
+            <img src="https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?auto=format&fit=crop&q=75&w=600" alt="Secondary & KCSE" class="cbc-card-img">
+            <div class="cbc-card-body">
+              <div class="cbc-card-title">Secondary & KCSE</div>
+              <div class="cbc-card-sub">Form 1 - Form 4 · Set Books</div>
+            </div>
+          </div>
+          <div class="cbc-card" onclick="switchView('stationery')">
+            <img src="https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&q=75&w=600" alt="Stationery & Supplies" class="cbc-card-img">
+            <div class="cbc-card-body">
+              <div class="cbc-card-title">Stationery & Supplies</div>
+              <div class="cbc-card-sub">Books · Pens · Math Sets</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Bestsellers -->
+    <section class="bestsellers">
+      <div class="wrap">
+        <div class="section-kicker">Bestsellers</div>
+        <div class="section-header-flex">
+          <h2 class="section-title">Most loved by parents & teachers</h2>
+          <a href="#" class="btn-text-link" onclick="switchView('shop')">View all products</a>
+        </div>
+        <div class="product-grid">
+          <div class="product-card">
+            <button class="wishlist-btn" aria-label="Add to Wishlist">&#9825;</button>
+            <div>
+              <div class="badge-stack">
+                <span class="tag-badge tag-badge--grade">Grade 8</span>
+                <span class="tag-badge tag-badge--save">Save KSh 100</span>
+              </div>
+              <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=75&w=400" alt="KLB Mathematics" class="product-thumb">
+              <div class="product-category">Mathematics</div>
+              <div class="product-title">KLB Visionary Mathematics Grade 8 Learner's Book</div>
+              <div class="product-publisher">Kenya Literature Bureau (KLB)</div>
+            </div>
+            <div>
+              <div class="price-row"><span class="current-price">KSh 780</span><span class="old-price">KSh 880</span></div>
+              <div class="action-row">
+                <button class="btn-add-cart">Add to cart</button>
+                <a href="https://wa.me/254716815025?text=I%20want%20to%20order%20KLB%20Mathematics%20G8" target="_blank" class="btn-wa-icon" aria-label="Order via WhatsApp">💬</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <button class="wishlist-btn" aria-label="Add to Wishlist">&#9825;</button>
+            <div>
+              <div class="badge-stack">
+                <span class="tag-badge tag-badge--grade">Grade 4</span>
+                <span class="tag-badge tag-badge--save">Save KSh 70</span>
+              </div>
+              <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=75&w=400" alt="Oxford English" class="product-thumb">
+              <div class="product-category">English</div>
+              <div class="product-title">Oxford New Progressive Primary English Grade 4</div>
+              <div class="product-publisher">Oxford University Press</div>
+            </div>
+            <div>
+              <div class="price-row"><span class="current-price">KSh 690</span><span class="old-price">KSh 760</span></div>
+              <div class="action-row">
+                <button class="btn-add-cart">Add to cart</button>
+                <a href="https://wa.me/254716815025?text=I%20want%20to%20order%20Oxford%20English%20G4" target="_blank" class="btn-wa-icon" aria-label="Order via WhatsApp">💬</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <button class="wishlist-btn" aria-label="Add to Wishlist">&#9825;</button>
+            <div>
+              <div class="badge-stack">
+                <span class="tag-badge tag-badge--grade">Pre-Primary</span>
+                <span class="tag-badge tag-badge--save">Save KSh 100</span>
+              </div>
+              <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=75&w=400" alt="Moran PP2" class="product-thumb">
+              <div class="product-category">Early Learning</div>
+              <div class="product-title">Moran CBC PP2 Activity Book Set (3 Books)</div>
+              <div class="product-publisher">Moran Publishers</div>
+            </div>
+            <div>
+              <div class="price-row"><span class="current-price">KSh 500</span><span class="old-price">KSh 600</span></div>
+              <div class="action-row">
+                <button class="btn-add-cart">Add to cart</button>
+                <a href="https://wa.me/254716815025?text=I%20want%20to%20order%20Moran%20PP2%20Set" target="_blank" class="btn-wa-icon" aria-label="Order via WhatsApp">💬</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <button class="wishlist-btn" aria-label="Add to Wishlist">&#9825;</button>
+            <div>
+              <div class="badge-stack"><span class="tag-badge tag-badge--grade">Form 4</span></div>
+              <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=75&w=400" alt="Set Book" class="product-thumb">
+              <div class="product-category">English</div>
+              <div class="product-title">The River and the Source – KCSE Set Book</div>
+              <div class="product-publisher">Kenya Literature Bureau (KLB)</div>
+            </div>
+            <div>
+              <div class="price-row"><span class="current-price">KSh 620</span></div>
+              <div class="action-row">
+                <button class="btn-add-cart">Add to cart</button>
+                <a href="https://wa.me/254716815025?text=I%20want%20to%20order%20The%20River%20and%20the%20Source" target="_blank" class="btn-wa-icon" aria-label="Order via WhatsApp">💬</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Bulk School Orders Banner -->
+    <section class="bulk-orders">
+      <div class="wrap">
+        <div class="bulk-card">
+          <div>
+            <div class="bulk-pill">🏫 Schools & Teachers</div>
+            <h2 class="bulk-title">Bulk school orders, made simple</h2>
+            <p class="bulk-desc">Send us your school booklist and we'll prepare a quote, source every title and deliver on schedule — term after term.</p>
+            <div class="bulk-buttons">
+              <a href="https://wa.me/254716815025?text=Hello%20Learning%20Park,%20I%20want%20to%20request%20a%20quote%20for%20a%20bulk%20school%20order." target="_blank" class="btn btn--wa">Request a Quote on WhatsApp</a>
+              <a href="tel:0716815025" class="btn btn--ghost">+254 716 815 025</a>
+            </div>
+          </div>
+          <div class="bulk-stats-grid">
+            <div class="stat-box"><div class="stat-number">10,000+</div><div class="stat-label">Titles stocked</div></div>
+            <div class="stat-box"><div class="stat-number">48hrs</div><div class="stat-label">Nairobi delivery</div></div>
+            <div class="stat-box"><div class="stat-number">300+</div><div class="stat-label">Schools served</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Trusted Publishers Ticker -->
+    <section class="publishers">
+      <div class="wrap">
+        <div class="section-kicker">Trusted Publishers We Stock</div>
+        <div class="publishers-list">
+          <span>Kenya Literature Bureau (KLB)</span>
+          <span>Longhorn Publishers</span>
+          <span>Oxford University Press</span>
+          <span>Moran Publishers</span>
+          <span>Spotlight Publishers</span>
+          <span>Mentor Publishers</span>
+          <span>Cambridge University Press</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Testimonials -->
+    <section class="testimonials">
+      <div class="wrap">
+        <div class="section-kicker">Loved By Families & Schools</div>
+        <h2 class="section-title">What our customers say</h2>
+        <div class="reviews-grid">
+          <div class="review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"I ordered the full Grade 8 booklist and it arrived in two days. Everything was genuine and well priced."</p>
+            <div class="reviewer-profile">
+              <div class="reviewer-avatar">W</div>
+              <div><div class="reviewer-name">Wanjiru M.</div><div class="reviewer-role">Parent, Nairobi</div></div>
+            </div>
+          </div>
+          <div class="review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"Learning Park handled our whole school order of 400 books. Quotes were fast and delivery was on schedule."</p>
+            <div class="reviewer-profile">
+              <div class="reviewer-avatar">O</div>
+              <div><div class="reviewer-name">Mr. Otieno</div><div class="reviewer-role">Head Teacher, Kisumu</div></div>
+            </div>
+          </div>
+          <div class="review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"The CBC approved titles are exactly what we need for class. The WhatsApp ordering is so convenient."</p>
+            <div class="reviewer-profile">
+              <div class="reviewer-avatar">A</div>
+              <div><div class="reviewer-name">Aisha K.</div><div class="reviewer-role">Teacher, Mombasa</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Newsletter -->
+    <section class="newsletter-banner">
+      <div class="wrap newsletter-wrap">
+        <div>
+          <div class="section-kicker" style="color:var(--gold);">Back-To-School Updates</div>
+          <h2 class="newsletter-title">School term booklists, CBC set book releases & term discounts</h2>
+          <p class="newsletter-sub">Join thousands of Kenyan parents, teachers and school administrators who get our term-time updates first.</p>
+        </div>
+        <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Subscribed successfully!');">
+          <input type="email" class="newsletter-input" placeholder="Your email address" required>
+          <button type="submit" class="btn btn--gold" style="width: auto;">Subscribe</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================= VIEW 2: SHOP / CBC BOOKS ================= -->
+  <div id="shop-view" class="view-section shop-layout">
+    <div class="wrap">
+      <div class="shop-container">
+        <aside class="sidebar">
+          <h3>Filter Curriculum</h3>
+          <div class="filter-group">
+            <h3>Grade & Level</h3>
+            <label><input type="checkbox" checked> Pre-Primary (PP1 - PP2)</label>
+            <label><input type="checkbox"> CBC Primary (Grade 1-3)</label>
+            <label><input type="checkbox" checked> Junior Secondary (Grade 8)</label>
+          </div>
+          <div class="filter-group">
+            <h3>Subject</h3>
+            <label><input type="checkbox" checked> Mathematics</label>
+            <label><input type="checkbox" checked> English Language</label>
+          </div>
+        </aside>
+        <div class="shop-main-content">
+          <div class="page-banner">
+            <h2>CBC Educational Textbooks</h2>
+            <p>Browse our KICD approved textbooks and curriculum learning materials.</p>
+          </div>
+          <div class="product-grid-shop">
+            <div class="product-card">
+              <div>
+                <span class="product-tag tag-badge--grade">KICD Approved</span>
+                <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=75&w=600&h=800" alt="Math G8" style="aspect-ratio:3/4; object-fit:cover; border-radius:8px; margin-bottom:1rem;">
+                <h4 class="product-title">KLB Visionary Mathematics Grade 8</h4>
+                <p class="product-publisher">Publisher: KLB</p>
+              </div>
+              <div>
+                <div class="current-price" style="margin-bottom:1rem;">KSh 780</div>
+                <div class="action-row">
+                  <button class="btn-add-cart">Add to Cart</button>
+                  <a href="https://wa.me/254716815025?text=Hello%2C%20I%20want%20to%20order%20KLB%20Mathematics%20G8" target="_blank" class="btn-wa-icon">💬</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VIEW 3: STATIONERY ================= -->
+  <div id="stationery-view" class="view-section shop-layout">
+    <div class="wrap">
+      <div class="shop-container">
+        <aside class="sidebar">
+          <h3>Stationery Filters</h3>
+          <div class="filter-group">
+            <h3>Item Type</h3>
+            <label><input type="checkbox" checked> Counter Books & Pads</label>
+            <label><input type="checkbox" checked> Pens & Pencils</label>
+          </div>
+        </aside>
+        <div class="shop-main-content">
+          <div class="page-banner">
+            <h2>Stationery & Exercise Books</h2>
+            <p>High-quality writing pads, counter books, mathematical sets, and writing instruments.</p>
+          </div>
+          <div class="product-grid-shop">
+            <div class="product-card">
+              <div>
+                <span class="product-tag tag-badge--grade">Essential Pack</span>
+                <img src="https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&q=75&w=600&h=800" alt="Counter Books" style="aspect-ratio:3/4; object-fit:cover; border-radius:8px; margin-bottom:1rem;">
+                <h4 class="product-title">A4 Counter Books (100 Pages - Pack of 6)</h4>
+                <p class="product-publisher">Brand: Kartasi / Fortune</p>
+              </div>
+              <div>
+                <div class="current-price" style="margin-bottom:1rem;">KSh 950</div>
+                <div class="action-row">
+                  <button class="btn-add-cart">Add to Cart</button>
+                  <a href="https://wa.me/254716815025?text=Hello%2C%20I%20want%20to%20order%20A4%20Counter%20Books" target="_blank" class="btn-wa-icon">💬</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VIEW 4: ART & PRACTICAL KITS ================= -->
+  <div id="art-kits-view" class="view-section shop-layout">
+    <div class="wrap">
+      <div class="shop-container">
+        <aside class="sidebar">
+          <h3>Art Kit Filters</h3>
+          <div class="filter-group">
+            <h3>Category</h3>
+            <label><input type="checkbox" checked> CBC Project Kits</label>
+            <label><input type="checkbox" checked> Paints & Brushes</label>
+          </div>
+        </aside>
+        <div class="shop-main-content">
+          <div class="page-banner">
+            <h2>Art & Practical Learning Kits</h2>
+            <p>Everything your student needs for CBC creative arts, craft projects, and practical activities.</p>
+          </div>
+          <div class="product-grid-shop">
+            <div class="product-card">
+              <div>
+                <span class="product-tag tag-badge--grade">CBC Approved</span>
+                <img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&q=75&w=600&h=800" alt="Paint Kit" style="aspect-ratio:3/4; object-fit:cover; border-radius:8px; margin-bottom:1rem;">
+                <h4 class="product-title">Junior Water Colour Paint & Brush Set</h4>
+                <p class="product-publisher">Brand: Craft Master</p>
+              </div>
+              <div>
+                <div class="current-price" style="margin-bottom:1rem;">KSh 600</div>
+                <div class="action-row">
+                  <button class="btn-add-cart">Add to Cart</button>
+                  <a href="https://wa.me/254716815025?text=Hello%2C%20I%20want%20to%20order%20Water%20Colour%20Paint%20Set" target="_blank" class="btn-wa-icon">💬</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VIEW 5: ECDE & TOYS ================= -->
+  <div id="ecde-toys-view" class="view-section shop-layout">
+    <div class="wrap">
+      <div class="shop-container">
+        <aside class="sidebar">
+          <h3>ECDE Filters</h3>
+          <div class="filter-group">
+            <h3>Age / Level</h3>
+            <label><input type="checkbox" checked> Playgroup & Nursery</label>
+            <label><input type="checkbox" checked> PP1 & PP2 Learning Aids</label>
+          </div>
+        </aside>
+        <div class="shop-main-content">
+          <div class="page-banner">
+            <h2>ECDE & Educational Play Aids</h2>
+            <p>Interactive learning toys, counting frames, flashcards, and puzzles for early childhood development.</p>
+          </div>
+          <div class="product-grid-shop">
+            <div class="product-card">
+              <div>
+                <span class="product-tag tag-badge--grade">Early Learning</span>
+                <img src="https://images.unsplash.com/photo-1587654780291-39c9404d746b?auto=format&fit=crop&q=75&w=600&h=800" alt="Counting Frame" style="aspect-ratio:3/4; object-fit:cover; border-radius:8px; margin-bottom:1rem;">
+                <h4 class="product-title">Wooden Educational Counting Frame & Blocks</h4>
+                <p class="product-publisher">Brand: KiddieLearn</p>
+              </div>
+              <div>
+                <div class="current-price" style="margin-bottom:1rem;">KSh 1,200</div>
+                <div class="action-row">
+                  <button class="btn-add-cart">Add to Cart</button>
+                  <a href="https://wa.me/254716815025?text=Hello%2C%20I%20want%20to%20order%20Wooden%20Counting%20Frame" target="_blank" class="btn-wa-icon">💬</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VIEW 6: REFERENCE & SET BOOKS ================= -->
+  <div id="reference-view" class="view-section shop-layout">
+    <div class="wrap">
+      <div class="shop-container">
+        <aside class="sidebar">
+          <h3>Reference Filters</h3>
+          <div class="filter-group">
+            <h3>Type</h3>
+            <label><input type="checkbox" checked> High School Set Books</label>
+            <label><input type="checkbox" checked> Dictionaries & Kamusi</label>
+          </div>
+        </aside>
+        <div class="shop-main-content">
+          <div class="page-banner">
+            <h2>Reference Books & Set Books</h2>
+            <p>Official KCSE set books, dictionaries, Kamusi ya Kiswahili, and comprehensive school atlases.</p>
+          </div>
+          <div class="product-grid-shop">
+            <div class="product-card">
+              <div>
+                <span class="product-tag tag-badge--grade">KCSE Set Book</span>
+                <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=75&w=600&h=800" alt="Set Book" style="aspect-ratio:3/4; object-fit:cover; border-radius:8px; margin-bottom:1rem;">
+                <h4 class="product-title">Official High School Literature Set Book & Guide</h4>
+                <p class="product-publisher">Publisher: KLB / Moran</p>
+              </div>
+              <div>
+                <div class="current-price" style="margin-bottom:1rem;">KSh 750</div>
+                <div class="action-row">
+                  <button class="btn-add-cart">Add to Cart</button>
+                  <a href="https://wa.me/254716815025?text=Hello%2C%20I%20want%20to%20order%20Set%20Book%20Guide" target="_blank" class="btn-wa-icon">💬</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VIEW 7: UNIVERSITY COURSES ================= -->
+  <div id="university-view" class="view-section shop-layout">
+    <div class="wrap">
+      <div class="page-banner" style="margin-bottom: 2rem;">
+        <h2>🎓 University & College Course Requirements</h2>
+        <p>Select your university and degree program to view exact required textbooks, lab equipment, and professional gear.</p>
+      </div>
+
+      <div class="uni-selector-card">
+        <div>
+          <h3>Select Institution</h3>
+          <p style="font-size: 0.9rem; color: var(--muted);">Choose from accredited universities and colleges across Kenya.</p>
+        </div>
+        <select id="uniSelect" onchange="filterUniversityCourses()">
+          <option value="all">-- All Universities & Programs --</option>
+          <option value="uon">University of Nairobi (UoN)</option>
+          <option value="strathmore">Strathmore University</option>
+          <option value="jkuat">Jomo Kenyatta University (JKUAT)</option>
+          <option value="ku">Kenyatta University (KU)</option>
+        </select>
+      </div>
+
+      <div id="courseListContainer" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="course-requirements-box" data-uni="uon">
+          <h3>Bachelor of Medicine & Surgery (MBChB) <span class="uni-tag">University of Nairobi (UoN)</span></h3>
+          <p style="color: var(--muted); font-size: 0.95rem; margin-top: .25rem;">Complete Professional Medical Kit & Prescribed Textbooks Bundle</p>
+          <ul class="req-list">
+            <li class="req-item">
+              <div><strong>Gray's Anatomy for Students (4th Edition)</strong><br><span style="font-size:0.85rem; color:var(--muted);">Required Reference Textbook</span></div>
+              <div style="text-align: right;"><strong style="color:var(--coral);">KSh 6,500</strong><br><a href="https://wa.me/254716815025?text=Hello%2C%20I%20want%20to%20order%20Gray's%20Anatomy" target="_blank" style="font-size:0.8rem; color:var(--whatsapp); font-weight:700;">Order via WhatsApp</a></div>
+            </li>
+            <li class="req-item">
+              <div><strong>Littmann Classic III Diagnostic Stethoscope</strong><br><span style="font-size:0.85rem; color:var(--muted);">Mandatory Clinical Instrument</span></div>
+              <div style="text-align: right;"><strong style="color:var(--coral);">KSh 14,500</strong><br><a href="https://wa.me/254716815025?text=Hello%2C%20I%20want%20to%20order%20Littmann%20Stethoscope" target="_blank" style="font-size:0.8rem; color:var(--whatsapp); font-weight:700;">Order via WhatsApp</a></div>
+            </li>
+          </ul>
+          <div style="margin-top: 1.25rem;">
+            <a href="https://wa.me/254716815025?text=Hello%2C%20I%20would%20like%20to%20order%20the%20entire%20UoN%20Medicine%20Bundle" target="_blank" class="btn btn--wa">Order Full Bundle via WhatsApp (0716815025)</a>
+          </div>
+        </div>
+
+        <div class="course-requirements-box" data-uni="strathmore">
+          <h3>Bachelor of Business Information Technology (BBIT) <span class="uni-tag">Strathmore University</span></h3>
+          <p style="color: var(--muted); font-size: 0.95rem; margin-top: .25rem;">Required Textbooks & Technical Equipment</p>
+          <ul class="req-list">
+            <li class="req-item">
+              <div><strong>Database System Concepts (7th Edition)</strong><br><span style="font-size:0.85rem; color:var(--muted);">Core Textbook</span></div>
+              <div style="text-align: right;"><strong style="color:var(--coral);">KSh 4,800</strong><br><a href="https://wa.me/254716815025?text=Hello%2C%20I%20want%20to%20order%20Database%20System%20Concepts" target="_blank" style="font-size:0.8rem; color:var(--whatsapp); font-weight:700;">Order via WhatsApp</a></div>
+            </li>
+          </ul>
+          <div style="margin-top: 1.25rem;">
+            <a href="https://wa.me/254716815025?text=Hello%2C%20I%20would%20like%20to%20order%20the%20entire%20Strathmore%20BBIT%20Bundle" target="_blank" class="btn btn--wa">Order Full Bundle via WhatsApp (0716815025)</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <a class="logo" href="#" style="color: #FFFFFF; margin-bottom: 1rem;" onclick="switchView('home')">
+          <svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#FFFFFF"/><rect x="18.5" y="0" width="3.2" height="64" fill="#E53900"/><path d="M27.5 27.5l6 6L47.5 15" fill="none" stroke="#0F172A" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Learning<span style="color: #E53900;">Park</span>
+        </a>
+        <p style="color: rgba(255,255,255,0.7); font-size: .9rem;">Your trusted partner for school and university booklist fulfillment across Kenya.</p>
+      </div>
+      <div>
+        <h2>Categories & Portals</h2>
+        <ul>
+          <li><a href="#" onclick="switchView('shop')">CBC Primary Books</a></li>
+          <li><a href="#" onclick="switchView('stationery')">Stationery & Books</a></li>
+          <li><a href="#" onclick="switchView('art-kits')">Art & Practical Kits</a></li>
+          <li><a href="#" onclick="switchView('university')">🎓 University Courses</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Quick Links</h2>
+        <ul>
+          <li><a href="#" onclick="switchView('home')">Find School Booklist</a></li>
+          <li><a href="#" onclick="switchView('shop')">Browse Shop Catalog</a></li>
+          <li><a href="#">Track Order Status</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Customer Support</h2>
+        <ul>
+          <li><a href="tel:0716815025">Phone: 0716 815 025</a></li>
+          <li><a href="mailto:orders@learningpark.co.ke">Email: orders@learningpark.co.ke</a></li>
+          <li><a href="https://wa.me/254716815025" target="_blank" rel="noopener">WhatsApp: 0716 815 025</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal">
+      <p>&copy; 2026 Learning Park. All rights reserved.</p>
+      <ul><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms & Conditions</a></li></ul>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/254716815025" target="_blank" class="floating-wa" aria-label="Chat on WhatsApp">💬</a>
+
+<script>
+const menuToggle = document.getElementById('menuToggle');
+const mainNav = document.getElementById('mainNav');
+
+menuToggle.addEventListener('click', () => {
+  mainNav.classList.toggle('is-open');
+  const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
+  menuToggle.setAttribute('aria-expanded', !expanded);
+});
+
+function closeMenu() {
+  mainNav.classList.remove('is-open');
+  menuToggle.setAttribute('aria-expanded', 'false');
+}
+
+function switchView(viewId) {
+  document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+  document.getElementById(viewId + '-view').classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function filterUniversityCourses() {
+  const selectedUni = document.getElementById('uniSelect').value;
+  const courseBoxes = document.querySelectorAll('.course-requirements-box');
+  courseBoxes.forEach(box => {
+    if (selectedUni === 'all' || box.getAttribute('data-uni') === selectedUni) {
+      box.style.display = 'block';
+    } else {
+      box.style.display = 'none';
+    }
+  });
+}
+</script>
+
+</body>
+</html>
