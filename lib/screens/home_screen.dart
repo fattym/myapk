@@ -5,6 +5,8 @@ import '../providers/app_provider.dart';
 import '../providers/catalog_provider.dart';
 import '../providers/schools_provider.dart';
 import '../theme/colors.dart';
+import '../utils/category_picker.dart';
+import 'account_screen.dart';
 import '../widgets/app_header.dart';
 import '../widgets/hero_banner.dart';
 import '../widgets/product_card.dart';
@@ -36,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final c = context.read<CatalogProvider>();
       c.loadCategories();
+      c.loadBrands();
       c.loadFeatured();
       c.loadDeals();
       c.loadSliders();
@@ -119,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final catalog = context.watch<CatalogProvider>();
-    final departments = catalog.departments;
+    final departments = catalog.topDepartments;
     final featured = catalog.featured;
 
     return Scaffold(
@@ -135,6 +138,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   children: [
                     const Expanded(child: Align(alignment: Alignment.centerLeft, child: BrandLogo())),
+                    IconButton(
+                      tooltip: 'Account',
+                      icon: const Icon(Icons.person_outline),
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => const AccountScreen()),
+                      ),
+                    ),
                     const CartButton(),
                   ],
                 ),
@@ -216,17 +227,59 @@ class _HomeScreenState extends State<HomeScreen> {
                     side: const BorderSide(color: AppColors.dividerColor),
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(horizontal: 6),
-                    onPressed: () {
-                      context.read<AppProvider>().setSelectedCategory(
-                            d.name,
-                            id: catalog.categoryIdFor(d),
-                          );
-                      widget.onNavigateToTab?.call(2);
-                    },
+                    onPressed: () => openCategory(context, d,
+                        () => widget.onNavigateToTab?.call(2)),
                   );
                 },
               ),
             ),
+            if (catalog.featuredBrands.isNotEmpty) ...[
+              _sectionHeader('Featured brands'),
+              SizedBox(
+                height: 92,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: catalog.featuredBrands.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (context, i) {
+                    final b = catalog.featuredBrands[i];
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        context
+                            .read<AppProvider>()
+                            .setSelectedPublisher(b.name, id: b.id);
+                        widget.onNavigateToTab?.call(2);
+                      },
+                      child: Container(
+                        width: 110,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.dividerColor),
+                        ),
+                        child: b.logoUrl == null
+                            ? Center(
+                                child: Text(b.name,
+                                    maxLines: 2,
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis))
+                            : Image.network(b.logoUrl!,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, _, _) => Center(
+                                    child: Text(b.name,
+                                        maxLines: 2,
+                                        textAlign: TextAlign.center,
+                                        overflow: TextOverflow.ellipsis))),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             _sectionHeader('Recommended for you',
                 onSeeAll: () => widget.onNavigateToTab?.call(2)),
             Padding(

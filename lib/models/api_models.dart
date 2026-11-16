@@ -450,7 +450,16 @@ final class ProductCategory {
 
 @immutable
 final class Brand {
-  const Brand({required this.id, this.name, this.slug, this.logo, this.image});
+  const Brand({
+    required this.id,
+    this.name,
+    this.slug,
+    this.logo,
+    this.image,
+    this.isFeatured = false,
+  });
+
+  final bool isFeatured;
 
   final int id;
   final String? name;
@@ -462,8 +471,13 @@ final class Brand {
         id: json['id'] as int? ?? 0,
         name: json['name'] as String?,
         slug: json['slug'] as String?,
-        logo: json['logo'] as String?,
+        logo: (json['logo_with_sizes'] is Map
+                ? (json['logo_with_sizes']['thumb'] ??
+                    json['logo_with_sizes']['origin'])
+                : json['logo'])
+            as String?,
         image: json['image'] as String?,
+        isFeatured: json['is_featured'] == 1 || json['is_featured'] == true,
       );
 
   Map<String, dynamic> toJson() => {

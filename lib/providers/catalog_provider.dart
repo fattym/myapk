@@ -16,7 +16,15 @@ enum CatalogStatus { idle, loading, success, error }
 
 /// A brand/publisher shown on the home screen (live brand, or sample fallback).
 class PublisherItem {
-  const PublisherItem({required this.name, required this.iconName, this.id});
+  const PublisherItem({
+    required this.name,
+    required this.iconName,
+    this.id,
+    this.logoUrl,
+    this.isFeatured = false,
+  });
+  final String? logoUrl;
+  final bool isFeatured;
   final String name;
   final String iconName;
   final int? id;
@@ -33,6 +41,36 @@ final class CatalogProvider extends ChangeNotifier {
   List<Department> get departments =>
       _departments.isEmpty ? sampleDepartments : _departments;
 
+  /// Top-level departments only (home chips).
+  List<Department> get topDepartments {
+    if (_departments.isEmpty) return sampleDepartments;
+    final top = {
+      for (final c in _allCategories)
+        if ((c.parentId ?? 0) == 0 || c.parentId == c.id) c.id.toString()
+    };
+    return _departments.where((d) => top.contains(d.id)).toList();
+  }
+
+  /// Direct sub-categories of a department (e.g. the grades under "Shop By Grade").
+  List<Department> childrenOf(Department d) {
+    final id = int.tryParse(d.id);
+    if (id == null) return const [];
+    final ids = {
+      for (final c in _allCategories)
+        if (c.parentId == id && c.id != id) c.id.toString()
+    };
+    final list = _departments.where((x) => ids.contains(x.id)).toList();
+    list.sort((a, b) => _gradeOrder(a.name).compareTo(_gradeOrder(b.name)));
+    return list;
+  }
+
+  static int _gradeOrder(String n) {
+    final u = n.toUpperCase();
+    if (u.startsWith('PP')) return int.tryParse(u.substring(2)) ?? 0;
+    final m = RegExp(r'(\d+)').firstMatch(u);
+    return m == null ? 1000 : 10 + int.parse(m.group(1)!);
+  }
+
   /// Maps a department id (string) back to the numeric category id.
   int? categoryIdFor(Department d) => int.tryParse(d.id);
 
@@ -42,18 +80,30 @@ final class CatalogProvider extends ChangeNotifier {
     _categoriesLoaded = true;
     try {
       _allCategories = await CategoryService.instance.fetchCategories();
-      final top = _allCategories.where((c) => (c.parentId ?? 0) == 0);
-      _departments = top
-          .map((c) => Department(
-                id: c.id.toString(),
-                name: c.name,
-                subtitle: _subCount(c.id) > 0
-                    ? '${_subCount(c.id)} categories'
-                    : 'Browse all',
-                itemCount: 0,
-                iconName: _iconFor(c.name),
-              ))
-          .toList();
+      // Show every category (top-level and sub-categories), de-duplicated by
+      // name; entries that are their own parent count as top-level.
+      final byId = {for (final c in _allCategories) c.id: c};
+      final seen = <String>{};
+      final all = _allCategories.where((c) {
+        final key = c.name.trim().toLowerCase();
+        return key.isNotEmpty && seen.add(key);
+      }).toList();
+      _departments = all.map((c) {
+        final pid = c.parentId ?? 0;
+        final parent = (pid == 0 || pid == c.id) ? null : byId[pid];
+        final subs = _subCount(c.id);
+        return Department(
+          id: c.id.toString(),
+          name: c.name,
+          subtitle: parent != null
+              ? 'in ${parent.name}'
+              : subs > 0
+                  ? '$subs categories'
+                  : 'Browse all',
+          itemCount: 0,
+          iconName: _iconFor(c.name),
+        );
+      }).toList();
     } catch (_) {
       _categoriesLoaded = false; // allow retry
     }
@@ -70,7 +120,8 @@ final class CatalogProvider extends ChangeNotifier {
     return ids;
   }
 
-  int _subCount(int id) => _allCategories.where((x) => x.parentId == id).length;
+  int _subCount(int id) =>
+      _allCategories.where((x) => x.parentId == id && x.id != id).length;
 
   static String _iconFor(String name) {
     final n = name.toLowerCase();
@@ -92,6 +143,9 @@ final class CatalogProvider extends ChangeNotifier {
           .toList()
       : _publishers;
 
+  List<PublisherItem> get featuredBrands =>
+      _publishers.where((b) => b.isFeatured).toList();
+
   bool _brandsLoaded = false;
   Future<void> loadBrands() async {
     if (_brandsLoaded) return;
@@ -101,7 +155,11 @@ final class CatalogProvider extends ChangeNotifier {
       _publishers = brands
           .where((b) => (b.name ?? '').isNotEmpty)
           .map((b) => PublisherItem(
-              name: b.name!, iconName: 'book-open', id: b.id))
+              name: b.name!,
+              iconName: 'book-open',
+              id: b.id,
+              logoUrl: b.logo,
+              isFeatured: b.isFeatured))
           .toList();
     } catch (_) {
       _brandsLoaded = false;

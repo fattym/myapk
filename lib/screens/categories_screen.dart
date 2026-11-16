@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../widgets/app_header.dart';
 import '../widgets/department_card.dart';
-import '../providers/app_provider.dart';
+import '../utils/category_picker.dart';
 import '../providers/catalog_provider.dart';
 import '../theme/colors.dart';
 
@@ -66,13 +66,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       final department = departments[index];
                       return DepartmentCard(
                         department: department,
-                        onTap: () {
-                          context.read<AppProvider>().setSelectedCategory(
-                                department.name,
-                                id: catalog.categoryIdFor(department),
-                              );
-                          widget.onNavigateToTab?.call(2);
-                        },
+                        onTap: () => openCategory(context, department,
+                            () => widget.onNavigateToTab?.call(2)),
                       );
                     },
                   ),
