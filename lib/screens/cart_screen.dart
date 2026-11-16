@@ -7,7 +7,6 @@ import '../providers/cart_provider.dart';
 import '../theme/colors.dart';
 import '../utils/formatters.dart';
 import '../utils/icons.dart';
-import '../widgets/modals/mpesa_stk_modal.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -54,14 +53,13 @@ class CartScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Chama Group Order Pooling Banner
-                  _buildChamaBanner(context, cart),
-                  const SizedBox(height: 16),
                   // Cart Items List
                   _buildCartItems(context, cart),
                   const SizedBox(height: 16),
                   // Delivery Selector
                   _buildDeliverySelector(context, cart),
+                  const SizedBox(height: 16),
+                  const _OrderDetailsForm(),
                   const SizedBox(height: 16),
                   // Order Summary
                   _buildOrderSummary(context, cart),
@@ -115,64 +113,6 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildChamaBanner(BuildContext context, CartProvider cart) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.accentGold,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const FaIcon(
-                FontAwesomeIcons.handHoldingHeart,
-                color: AppColors.darkPurple,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Chama Group Order Pooling',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.darkPurple,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Apply 10% discount and free school gate delivery',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.darkPurple,
-                ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          SwitchListTile(
-            title: Text(
-              'Apply Chama Discount',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.darkPurple,
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            value: cart.useChamaDiscount,
-            onChanged: (value) => cart.toggleChamaDiscount(value),
-            activeThumbColor: AppColors.primaryPurple,
-            activeTrackColor: AppColors.lightPurple,
-            secondary: const Icon(
-              Icons.local_offer,
-              color: AppColors.darkPurple,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCartItems(BuildContext context, CartProvider cart) {
     final theme = Theme.of(context);
     return Column(
@@ -206,12 +146,29 @@ class CartScreen extends StatelessWidget {
                     // Top row: icon, title, price
                     Row(
                       children: [
-                        Icon(
-                          getIconForName(item.product.iconName),
-                          color: AppColors.primaryPurple,
-                          size: 28,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: SizedBox(
+                            width: 56,
+                            height: 56,
+                            child: item.product.imageUrl == null
+                                ? Icon(
+                                    getIconForName(item.product.iconName),
+                                    color: AppColors.primaryPurple,
+                                    size: 28,
+                                  )
+                                : Image.network(
+                                    item.product.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) => Icon(
+                                      getIconForName(item.product.iconName),
+                                      color: AppColors.primaryPurple,
+                                      size: 28,
+                                    ),
+                                  ),
+                          ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,6 +386,7 @@ class CartScreen extends StatelessWidget {
                           fontSize: 12,
                         ),
                       ),
+                      if (type.priceLabel.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
                         isFree ? 'FREE' : type.priceLabel,
@@ -440,6 +398,7 @@ class CartScreen extends StatelessWidget {
                           fontSize: 13,
                         ),
                       ),
+                      ],
                     ],
                   ),
                 );
@@ -481,7 +440,11 @@ class CartScreen extends StatelessWidget {
               '-${formatKES(cart.couponDiscount)}',
               isNegative: true,
             ),
-          _buildSummaryRow('Delivery Fee', formatKES(cart.deliveryFee)),
+          _buildSummaryRow(
+              'Delivery Fee',
+              cart.deliveryType == DeliveryType.doorstep
+                  ? formatKES(cart.deliveryFee)
+                  : 'Confirmed on WhatsApp'),
           const SizedBox(height: 8),
           const _PromoCodeField(),
           const SizedBox(height: 8),
@@ -612,28 +575,6 @@ class CartScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ElevatedButton.icon(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => MpesaStkModal(totalAmount: cart.total),
-            );
-          },
-          icon: const FaIcon(
-            FontAwesomeIcons.mobileScreenButton,
-            size: 18,
-          ),
-          label: const Text('Pay with M-Pesa'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryPurple,
-            foregroundColor: AppColors.surfaceWhite,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        ElevatedButton.icon(
           onPressed: () => _openWhatsApp(context, cart),
           icon: const FaIcon(
             FontAwesomeIcons.whatsapp,
@@ -649,11 +590,32 @@ class CartScreen extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        ElevatedButton.icon(
+          onPressed: null,
+          icon: const FaIcon(
+            FontAwesomeIcons.mobileScreenButton,
+            size: 18,
+          ),
+          label: const Text('Pay with M-Pesa (coming soon)'),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
       ],
     );
   }
 
   Future<void> _openWhatsApp(BuildContext context, CartProvider cart) async {
+    if (cart.phone.trim().isEmpty || cart.deliveryLocation.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Please add your phone number and delivery location.'),
+      ));
+      return;
+    }
     final buffer = StringBuffer();
     buffer.writeln('MyBidhaa Order Summary');
     buffer.writeln('');
@@ -669,10 +631,16 @@ class CartScreen extends StatelessWidget {
       buffer.writeln('Chama Discount: -${formatKES(cart.chamaSavings)}');
     }
     buffer.writeln('Delivery: ${cart.deliveryType.label}');
-    if (cart.deliveryFee > 0) {
+    if (cart.deliveryType == DeliveryType.doorstep) {
       buffer.writeln('Delivery Fee: ${formatKES(cart.deliveryFee)}');
     } else {
-      buffer.writeln('Delivery Fee: FREE');
+      buffer.writeln('Delivery Fee: to be confirmed');
+    }
+    buffer.writeln('');
+    buffer.writeln('Phone: ${cart.phone.trim()}');
+    buffer.writeln('Delivery location: ${cart.deliveryLocation.trim()}');
+    if (cart.notes.trim().isNotEmpty) {
+      buffer.writeln('More details: ${cart.notes.trim()}');
     }
     buffer.writeln('');
     buffer.writeln('TOTAL: ${formatKES(cart.total)}');
@@ -749,6 +717,82 @@ class _PromoCodeFieldState extends State<_PromoCodeField> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Text('Apply'),
+        ),
+      ],
+    );
+  }
+}
+
+
+class _OrderDetailsForm extends StatefulWidget {
+  const _OrderDetailsForm();
+
+  @override
+  State<_OrderDetailsForm> createState() => _OrderDetailsFormState();
+}
+
+class _OrderDetailsFormState extends State<_OrderDetailsForm> {
+  late final TextEditingController _phone;
+  late final TextEditingController _location;
+  late final TextEditingController _notes;
+
+  @override
+  void initState() {
+    super.initState();
+    final cart = context.read<CartProvider>();
+    _phone = TextEditingController(text: cart.phone);
+    _location = TextEditingController(text: cart.deliveryLocation);
+    _notes = TextEditingController(text: cart.notes);
+  }
+
+  @override
+  void dispose() {
+    _phone.dispose();
+    _location.dispose();
+    _notes.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cart = context.read<CartProvider>();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Order details',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _phone,
+          keyboardType: TextInputType.phone,
+          onChanged: (v) => cart.phone = v,
+          decoration: const InputDecoration(
+              labelText: 'Phone number *', border: OutlineInputBorder()),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _location,
+          textCapitalization: TextCapitalization.sentences,
+          onChanged: (v) => cart.deliveryLocation = v,
+          decoration: const InputDecoration(
+              labelText: 'Delivery location *',
+              hintText: 'Estate / road / school',
+              border: OutlineInputBorder()),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _notes,
+          minLines: 2,
+          maxLines: 4,
+          textCapitalization: TextCapitalization.sentences,
+          onChanged: (v) => cart.notes = v,
+          decoration: const InputDecoration(
+              labelText: 'More details (optional)',
+              alignLabelWithHint: true,
+              border: OutlineInputBorder()),
         ),
       ],
     );

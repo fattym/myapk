@@ -169,7 +169,8 @@ class _ScanBooklistScreenState extends State<ScanBooklistScreen> {
     final file = _image;
     if (file == null) return;
     await SharePlus.instance.share(ShareParams(
-      text: 'MyBidhaa booklist photo. Please quote the books and prices.',
+      text: 'MyBidhaa booklist photo. Please quote the books and prices. '
+          '(Send to WhatsApp +254 797 100 500)',
       files: [XFile(file.path)],
     ));
   }
@@ -323,7 +324,7 @@ class _ScanBooklistScreenState extends State<ScanBooklistScreen> {
             OutlinedButton.icon(
               onPressed: _sendPhoto,
               icon: const Icon(Icons.chat_outlined),
-              label: const Text('Not right? Send the photo on WhatsApp'),
+              label: const Text('Send to MyBidhaa WhatsApp (+254 797 100 500)'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFF147A3F),
                 minimumSize: const Size.fromHeight(48),

@@ -8,6 +8,9 @@ import '../services/cart_service.dart';
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
   bool _useChamaDiscount = false;
+  String phone = '';
+  String deliveryLocation = '';
+  String notes = '';
   String? _couponCode;
   double _couponDiscount = 0;
   bool _couponBusy = false;
@@ -80,11 +83,10 @@ class CartProvider extends ChangeNotifier {
   double get deliveryFeeRaw {
     switch (_deliveryType) {
       case DeliveryType.doorstep:
-        return 250.0;
+        return 300.0;
       case DeliveryType.schoolGate:
-        return _useChamaDiscount ? 0.0 : 100.0;
       case DeliveryType.courier:
-        return 180.0;
+        return 0.0; // confirmed with the customer on WhatsApp
     }
   }
 

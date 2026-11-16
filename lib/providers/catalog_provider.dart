@@ -86,6 +86,7 @@ final class CatalogProvider extends ChangeNotifier {
       final seen = <String>{};
       final all = _allCategories.where((c) {
         final key = c.name.trim().toLowerCase();
+        if (key.contains('shop by school')) return false; // has its own tab
         return key.isNotEmpty && seen.add(key);
       }).toList();
       _departments = all.map((c) {
