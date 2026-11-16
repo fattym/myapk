@@ -7,6 +7,7 @@ import '../providers/schools_provider.dart';
 import '../theme/colors.dart';
 import '../utils/category_picker.dart';
 import 'account_screen.dart';
+import 'services_screen.dart';
 import '../widgets/app_header.dart';
 import '../widgets/hero_banner.dart';
 import '../widgets/product_card.dart';
@@ -182,6 +183,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   _quickAction(Icons.chat_outlined, 'WhatsApp',
                       const Color(0xFF147A3F), _openWhatsApp),
                 ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const ServicesScreen())),
+                icon: const Icon(Icons.apps),
+                label: const Text('Other services'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(46),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
               ),
             ),
             if (catalog.deals.isNotEmpty) ...[

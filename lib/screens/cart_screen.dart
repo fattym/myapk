@@ -624,6 +624,13 @@ class CartScreen extends StatelessWidget {
       buffer.writeln(
         '${item.product.title}$condition x${item.quantity} = ${formatKES(item.totalPrice)}',
       );
+      final img = item.product.imageUrl;
+      if (img != null && img.isNotEmpty) buffer.writeln('Image: $img');
+      final slug = item.product.slug;
+      if (slug != null && slug.isNotEmpty) {
+        buffer.writeln('Link: https://mybidhaa.com/products/$slug');
+      }
+      buffer.writeln('');
     }
     buffer.writeln('');
     buffer.writeln('Subtotal: ${formatKES(cart.subtotal)}');

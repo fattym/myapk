@@ -46,7 +46,7 @@ final class CatalogProvider extends ChangeNotifier {
     if (_departments.isEmpty) return sampleDepartments;
     final top = {
       for (final c in _allCategories)
-        if ((c.parentId ?? 0) == 0 || c.parentId == c.id) c.id.toString()
+        if ((c.parentId ?? 0) == 0) c.id.toString()
     };
     return _departments.where((d) => top.contains(d.id)).toList();
   }
@@ -87,6 +87,7 @@ final class CatalogProvider extends ChangeNotifier {
       final all = _allCategories.where((c) {
         final key = c.name.trim().toLowerCase();
         if (key.contains('shop by school')) return false; // has its own tab
+        if (c.parentId == c.id) return false; // broken self-parent duplicates
         return key.isNotEmpty && seen.add(key);
       }).toList();
       _departments = all.map((c) {
@@ -351,3 +352,4 @@ final class CatalogProvider extends ChangeNotifier {
     super.dispose();
   }
 }
+

@@ -30,15 +30,52 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget build(BuildContext context) {
     final catalog = context.watch<CatalogProvider>();
     final q = _query.trim().toLowerCase();
+    bool matches(Department d) =>
+        q.isEmpty ||
+        d.name.toLowerCase().contains(q) ||
+        catalog.childrenOf(d).any(matches);
     List<Department> kidsOf(Department d) => catalog
         .childrenOf(d)
-        .where((k) => q.isEmpty || k.name.toLowerCase().contains(q) ||
-            d.name.toLowerCase().contains(q))
+        .where((k) => d.name.toLowerCase().contains(q) || matches(k))
         .toList();
-    final tops = catalog.topDepartments.where((d) {
-      if (q.isEmpty || d.name.toLowerCase().contains(q)) return true;
-      return kidsOf(d).isNotEmpty;
-    }).toList();
+    final tops = catalog.topDepartments.where(matches).toList();
+
+    Widget node(Department d, int depth) {
+      final kids = kidsOf(d);
+      void go(Department x) =>
+          openCategory(context, x, () => widget.onNavigateToTab?.call(2));
+      final pad = EdgeInsets.only(left: 16.0 + depth * 14);
+      if (kids.isEmpty) {
+        return ListTile(
+          dense: depth > 0,
+          contentPadding: depth == 0 ? null : pad,
+          title: Text(d.name,
+              style: TextStyle(
+                  fontWeight: depth == 0 ? FontWeight.w600 : FontWeight.w400)),
+          trailing: depth == 0 ? const Icon(Icons.chevron_right) : null,
+          onTap: () => go(d),
+        );
+      }
+      return ExpansionTile(
+        key: PageStorageKey('cat-${d.id}'),
+        initiallyExpanded: q.isNotEmpty,
+        shape: const Border(),
+        collapsedShape: const Border(),
+        tilePadding: depth == 0 ? null : pad,
+        title: Text(d.name,
+            style: TextStyle(
+                fontWeight: depth == 0 ? FontWeight.w600 : FontWeight.w500)),
+        children: [
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.only(left: 16.0 + (depth + 1) * 14),
+            title: Text('All ${d.name}'),
+            onTap: () => go(d),
+          ),
+          for (final k in kids) node(k, depth + 1),
+        ],
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.backgroundNeutral,
       body: Column(
@@ -62,46 +99,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     itemCount: tops.length,
                     itemBuilder: (context, i) {
-                      final d = tops[i];
-                      final kids = kidsOf(d);
-                      void go(Department x) => openCategory(context, x,
-                          () => widget.onNavigateToTab?.call(2));
                       return Card(
                         margin: const EdgeInsets.only(bottom: 10),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14)),
                         clipBehavior: Clip.antiAlias,
-                        child: kids.isEmpty
-                            ? ListTile(
-                                title: Text(d.name,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w600)),
-                                trailing: const Icon(Icons.chevron_right),
-                                onTap: () => go(d),
-                              )
-                            : ExpansionTile(
-                                key: PageStorageKey(d.id),
-                                initiallyExpanded: q.isNotEmpty,
-                                shape: const Border(),
-                                collapsedShape: const Border(),
-                                title: Text(d.name,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w600)),
-                                subtitle: Text('${kids.length} categories'),
-                                children: [
-                                  ListTile(
-                                    dense: true,
-                                    title: Text('All ${d.name}'),
-                                    onTap: () => go(d),
-                                  ),
-                                  for (final k in kids)
-                                    ListTile(
-                                      dense: true,
-                                      title: Text(k.name),
-                                      onTap: () => go(k),
-                                    ),
-                                ],
-                              ),
+                        child: node(tops[i], 0),
                       );
                     },
                   ),
