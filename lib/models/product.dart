@@ -112,9 +112,13 @@ class Product {
   }
 
   /// True when the live price is below the list price (sale / promotion).
-  /// Discounts above 90% are treated as bad data and not advertised.
+  /// Only real deals are advertised: at least 5% off (tiny KES 1-2 price
+  /// differences are rounding noise) and at most 90% off (above that is bad data).
   bool get isDiscounted =>
-      oldPrice != null && oldPrice! > newPrice && newPrice * 10 >= oldPrice!;
+      oldPrice != null &&
+      oldPrice! > newPrice &&
+      newPrice * 10 >= oldPrice! &&
+      (oldPrice! - newPrice) / oldPrice! >= 0.05;
 
   /// Percentage off, rounded (null when not discounted).
   int? get discountPercent => isDiscounted

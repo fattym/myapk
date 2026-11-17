@@ -8,12 +8,15 @@ import 'providers/schools_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/main_shell_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'services/connectivity_service.dart';
 import 'services/update_service.dart';
 import 'theme/app_theme.dart';
+import 'widgets/offline_banner.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
+  ConnectivityService.instance.check();
   UpdateService.check(); // Play in-app update prompt (Android)
 }
 
@@ -32,6 +35,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'MyBidhaa',
+        navigatorKey: appNavigatorKey,
         theme: AppTheme.lightTheme,
         builder: (context, child) {
           // Keep layouts intact for very large system font sizes.
@@ -41,7 +45,7 @@ class MyApp extends StatelessWidget {
               textScaler: mq.textScaler.clamp(
                   minScaleFactor: 0.9, maxScaleFactor: 1.4),
             ),
-            child: child!,
+            child: OfflineBanner(child: child!),
           );
         },
         home: const _StartGate(),

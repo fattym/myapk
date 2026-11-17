@@ -517,7 +517,9 @@ final class CartItem {
         name: (json['name'] ?? '') as String,
         qty: (json['qty'] ?? json['quantity']) as int? ?? 1,
         price: _toDouble(json['price']),
-        options: json['options'] as Map<String, dynamic>?,
+        options: json['options'] is Map
+            ? Map<String, dynamic>.from(json['options'] as Map)
+            : null,
         rowId: (json['rowId'] ?? json['row_id']) as String?,
       );
 }
@@ -562,7 +564,7 @@ final class CartResponse {
       items: itemsList
           .map((e) => CartItem.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList(),
-      message: (json['message'] ?? '') as String,
+      message: (json['message'] ?? '').toString(),
       cartId: json['id']?.toString(),
     );
   }

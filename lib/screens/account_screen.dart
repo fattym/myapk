@@ -86,7 +86,7 @@ class _AccountScreenState extends State<AccountScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          if (auth.isAuthenticated) ..._signedIn(auth) else ..._authForm(),
+          if (auth.isAuthenticated) ..._signedIn(auth) else ...(_loginEnabled ? _authForm() : _comingSoon()),
           const SizedBox(height: 16),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -109,6 +109,24 @@ class _AccountScreenState extends State<AccountScreen> {
         OutlinedButton(
           onPressed: () => auth.logout(),
           child: const Text('Log out'),
+        ),
+      ];
+
+  /// Flip to true to bring back in-app login/registration.
+  static const bool _loginEnabled = false;
+
+  List<Widget> _comingSoon() => [
+        const Text('In-app login coming soon',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        const Text(
+            'For now, please log in or manage your account on our website.'),
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: () => launchUrl(Uri.parse('https://mybidhaa.com/login'),
+              mode: LaunchMode.externalApplication),
+          icon: const Icon(Icons.open_in_new),
+          label: const Text('Log in on mybidhaa.com'),
         ),
       ];
 

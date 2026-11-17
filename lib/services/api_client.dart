@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_config.dart';
+import 'connectivity_service.dart';
 
 final class ApiClient {
   ApiClient._internal();
@@ -61,7 +62,17 @@ final class _AuthInterceptor extends Interceptor {
 
 final class _ErrorInterceptor extends Interceptor {
   @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    ConnectivityService.instance.reportSuccess();
+    handler.next(response);
+  }
+
+  @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (err.type == DioExceptionType.connectionError ||
+        err.type == DioExceptionType.connectionTimeout) {
+      ConnectivityService.instance.reportFailure();
+    }
     handler.reject(err);
   }
 }

@@ -64,9 +64,6 @@ class CartScreen extends StatelessWidget {
                   // Order Summary
                   _buildOrderSummary(context, cart),
                   const SizedBox(height: 16),
-                  // Lipa Polepole Breakdown
-                  _buildLipapolepole(context, cart),
-                  const SizedBox(height: 16),
                   // Checkout Buttons
                   _buildCheckoutButtons(context, cart),
                   const SizedBox(height: 24),
@@ -491,85 +488,6 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLipapolepole(BuildContext context, CartProvider cart) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.lightGold,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.accentGold.withValues(alpha: 0.5),
-        ),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Lipa Polepole (3 Installments)',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.darkPurple,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _buildPaymentRow(
-            'Deposit (33%)',
-            formatKES(cart.deposit),
-            'Due today',
-          ),
-          _buildPaymentRow(
-            'Term 1 Payment',
-            formatKES(cart.termPayment),
-            'In 1 month',
-          ),
-          _buildPaymentRow(
-            'Term 2 Payment',
-            formatKES(cart.termPayment),
-            'In 2 months',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentRow(String label, String amount, String dueDate) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.darkPurple,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-              Text(
-                dueDate,
-                style: const TextStyle(
-                  color: AppColors.darkPurple,
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-          Text(
-            amount,
-            style: const TextStyle(
-              color: AppColors.darkPurple,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCheckoutButtons(BuildContext context, CartProvider cart) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -636,6 +554,10 @@ class CartScreen extends StatelessWidget {
     buffer.writeln('Subtotal: ${formatKES(cart.subtotal)}');
     if (cart.useChamaDiscount) {
       buffer.writeln('Chama Discount: -${formatKES(cart.chamaSavings)}');
+    }
+    if (cart.couponCode != null) {
+      buffer.writeln(
+          'Promo (${cart.couponCode}): -${formatKES(cart.couponDiscount)}');
     }
     buffer.writeln('Delivery: ${cart.deliveryType.label}');
     if (cart.deliveryType == DeliveryType.doorstep) {

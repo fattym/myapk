@@ -143,7 +143,7 @@ class _ProductCardState extends State<ProductCard> {
                               fontSize: 16,
                             ),
                           ),
-                          if (!_isPreowned && widget.product.oldPrice != null)
+                          if (!_isPreowned && widget.product.isDiscounted)
                             TextSpan(
                               text: '  ${widget.product.oldPrice!.toStringAsFixed(0)}',
                               style: const TextStyle(

@@ -54,7 +54,13 @@ class CartProvider extends ChangeNotifier {
         return res.message ?? 'This promo code is invalid or expired';
       }
       final cart = await svc.getCart();
-      _couponCode = cart.appliedCouponCode ?? code;
+      if (cart.appliedCouponCode == null || cart.couponDiscount <= 0) {
+        try {
+          await svc.removeCoupon();
+        } catch (_) {}
+        return 'This promo code gives no discount on your cart';
+      }
+      _couponCode = cart.appliedCouponCode;
       _couponDiscount = cart.couponDiscount;
       return null;
     } on ApiError catch (e) {
